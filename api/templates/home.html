@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}CyberSpark — Practical Tech Courses{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/home.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="landing-hero">
+  <div class="hero-left">
+    <div class="hero-eyebrow">Built for the Nigerian market</div>
+    <h1 class="hero-title">Master<br><em>Modern</em><br>Tech.</h1>
+    <p class="hero-sub">Frontend, Backend, DevOps & AI/ML from top 1% instructors. Build real projects. Get hired faster.</p>
+    <div class="hero-actions">
+      <a href="{% url 'courses' %}" class="btn-primary">Browse Courses →</a>
+      <a href="{% url 'signup' %}" class="btn-ghost">Free Sign Up</a>
+    </div>
+<div class="hero-stats">
+      {% for stat in hero_stats %}
+      <div class="stat-item">
+        <span class="val">{{ stat.val }}</span>
+        <span class="lbl">{{ stat.lbl }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="hero-feature">
+      <div class="hero-feature-tag">Popular</div>
+      <div class="hero-feature-num">01</div>
+      <div class="hero-feature-title">Expert Instructors</div>
+      <div class="hero-feature-desc">Industry leaders with 10+ years of hands-on experience.</div>
+    </div>
+<div class="hero-feature" class="bg-gradient-blue">
+      <div class="hero-feature-tag blue-tag">New</div>
+      <div class="hero-feature-num">02</div>
+      <div class="hero-feature-title">Lifetime Access</div>
+      <div class="hero-feature-desc">Pay once, learn forever. Certificates included.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Featured Courses -->
+<div class="section">
+  <div class="section-header">
+    <div>
+      <div class="section-title">Featured Courses</div>
+      <div class="section-sub">Curated by our expert panel · Updated weekly</div>
+    </div>
+    <a href="{% url 'courses' %}" class="btn-link">View all <span>→</span></a>
+  </div>
+  <div class="courses-grid">
+      {% for course in featured_courses %}
+      <a href="{% url 'course_detail' course.slug %}" class="course-card" style="text-decoration:none;">
+        <div class="course-thumb">
+          {% if course.thumbnail %}
+            <img src="{{ course.thumbnail }}" alt="{{ course.title }}" loading="lazy">
+          {% else %}
+            <div class="course-thumb-placeholder">{{ course.title|slice:":1"|upper }}</div>
+          {% endif %}
+        </div>
+        <div class="course-cat">{{ course.category.name|default:course.level|capfirst }}</div>
+        <div class="course-title">{{ course.title }}</div>
+        <div class="course-instructor">by {{ course.instructor }}</div>
+        <div class="course-footer">
+          <span class="course-price">{{ course.display_price }}</span>
+          <span class="course-rating">
+            {% if course.rating %}{{ course.rating }} ({{ course.rating_count }}){% else %}New{% endif %}
+          </span>
+        </div>
+      </a>
+      {% empty %}
+      <div class="course-card" style="justify-content: center; color: var(--text-2);">
+        No featured courses yet. Check back soon!
+      </div>
+      {% endfor %}
+    </div>
+</div>
+
+<!-- CTA -->
+<div class="cta-banner">
+  <div>
+    <h2>Ready to level up?</h2>
+    <p>Join a growing community of developers building their future with CyberSpark</p>
+  </div>
+  <a href="{% url 'signup' %}" class="btn-dark">Get Started Free →</a>
+</div>
+{% endblock %}
+
+{% block extra_js %}{% endblock %}

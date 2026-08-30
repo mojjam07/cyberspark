@@ -1,0 +1,49 @@
+/* Instructor Detail page */
+
+.instr-hero {
+  padding: clamp(1.5rem, 6vw, 3.5rem) clamp(1.5rem, 6vw, 4rem) clamp(1rem, 4vw, 2rem);
+  display: flex;
+  align-items: center;
+  gap: clamp(1rem, 3vw, 1.75rem);
+  flex-wrap: wrap;
+}
+.instr-photo {
+  width: 84px; height: 84px; border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.instr-photo-placeholder {
+  width: 84px; height: 84px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--accent-dim);
+  border: 1px solid rgba(184,255,87,0.2);
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.instr-name {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 800;
+  color: var(--text);
+}
+.instr-title { font-size: 13px; color: var(--text-2); margin-top: 2px; }
+
+.instr-bio {
+  padding: 0 clamp(1.5rem, 6vw, 4rem) clamp(1.5rem, 4vw, 2rem);
+  font-size: 14px;
+  color: var(--text-2);
+  line-height: 1.8;
+  max-width: 62ch;
+}
+
+.instr-courses-head {
+  padding: 1.5rem clamp(1.5rem, 6vw, 4rem) 1rem;
+  border-top: 1px solid var(--border);
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--text);
+}

@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Certificate — {{ enrollment.course.title }}{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/certificates.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="cert-page-wrap">
+  <div class="cert-actions">
+    <a href="{% url 'certificates' %}" class="btn-ghost" style="text-decoration:none;">← Back to Certificates</a>
+    <button type="button" class="btn-submit" onclick="window.print()">Print / Save as PDF</button>
+  </div>
+
+  <div class="cert-doc">
+    <div class="cert-brand">Cyber<span>Spark</span></div>
+    <div class="cert-kicker">Certificate of Completion</div>
+    <div class="cert-recipient">{{ enrollment.user.get_full_name|default:enrollment.user.username }}</div>
+    <p class="cert-body-text">
+      has successfully completed the course
+      <span class="cert-course-name">{{ enrollment.course.title }}</span>,
+      demonstrating proficiency in the skills and concepts covered.
+    </p>
+
+    <div class="cert-footer-row">
+      <div class="cert-footer-item">
+        <div class="value">{{ enrollment.completed_at|date:"F d, Y" }}</div>
+        <div class="line"></div>
+        <div class="label">Date Completed</div>
+      </div>
+      <div class="cert-footer-item">
+        <div class="value">{{ enrollment.course.instructor }}</div>
+        <div class="line"></div>
+        <div class="label">Instructor</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

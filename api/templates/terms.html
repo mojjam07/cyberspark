@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Terms of Service — CyberSpark{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/legal.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="legal-wrap">
+  <h1>Terms of Service</h1>
+  <div class="legal-updated">Last updated: {% now "F Y" %}</div>
+
+  <div class="legal-body">
+    <p><strong>1. Acceptance of Terms.</strong>
+    By creating an account or purchasing a course on CyberSpark Enroll, you agree to these Terms of Service.</p>
+
+    <p><strong>2. Course Access.</strong>
+    Paid courses grant you lifetime access to the course content for personal, non-commercial learning use.
+    Sharing your account or redistributing course materials is not permitted.</p>
+
+    <p><strong>3. Payments.</strong>
+    We accept payment via Paystack (card/bank) and direct bank transfer. Paystack payments are confirmed automatically.
+    Bank transfer payments are reviewed manually and typically confirmed within 24 hours of proof submission.</p>
+
+    <p><strong>4. Refund Policy.</strong>
+    If you're not satisfied with a paid course, you may request a full refund within 7 days of purchase,
+    provided you have completed less than 20% of the course content. To request a refund, contact us at
+    the email address on our <a href="{% url 'contact' %}">Contact page</a> with your
+    order reference. Approved refunds are processed back to the original payment method (Paystack) or via
+    bank transfer to the account you paid from, within 5-10 business days. Refunds are not available once a
+    certificate of completion has been issued.</p>
+
+    <p><strong>5. Account Responsibility.</strong>
+    You are responsible for keeping your login credentials secure and for all activity under your account.</p>
+
+    <p><strong>6. Changes to Courses.</strong>
+    We may update, expand, or occasionally retire course content. We'll make reasonable efforts to notify
+    enrolled learners of material changes.</p>
+
+    <p><strong>7. Limitation of Liability.</strong>
+    CyberSpark IT Solutions provides courses "as is" for educational purposes and makes no guarantee of specific
+    employment or income outcomes from completing a course.</p>
+
+    <p><strong>8. Contact.</strong>
+    Questions about these terms? Reach us via our <a href="{% url 'contact' %}">Contact page</a>.</p>
+
+    <div class="legal-disclaimer">
+      This is a general template and not legal advice — have it reviewed by a lawyer familiar with
+      Nigerian consumer protection and e-commerce regulations before relying on it in production.
+    </div>
+  </div>
+</div>
+{% endblock %}

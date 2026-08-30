@@ -1,0 +1,48 @@
+/* My Orders page */
+
+.orders-head { margin-bottom: clamp(1.5rem, 4vw, 2.5rem); }
+.orders-head h1 {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 0.35rem;
+}
+.orders-head .sub { font-size: 13px; color: var(--text-2); }
+
+.order-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1.1rem 1.35rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 0.75rem;
+  background: var(--bg-card);
+  transition: border-color 0.2s ease;
+}
+.order-row:hover { border-color: var(--border-hover); }
+
+.order-info .title { font-weight: 600; color: var(--text); margin-bottom: 3px; font-size: 14px; }
+.order-info .meta { font-size: 12px; color: var(--text-3); }
+
+.order-status {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+.status-paid { background: rgba(184,255,87,0.15); color: var(--accent); }
+.status-pending, .status-awaiting_review { background: rgba(87,184,255,0.15); color: var(--blue); }
+.status-failed, .status-cancelled { background: rgba(255,87,87,0.15); color: var(--red); }
+
+@media (max-width: 480px) {
+  .order-row { flex-direction: column; align-items: flex-start; }
+  .order-status { align-self: flex-start; }
+}

@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Page Not Found — CyberSpark{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/error.css' %}">
+{% endblock %}
+{% block content %}
+<div class="error-wrap">
+  <div>
+    <div class="error-code">404</div>
+    <h1 class="error-title">Page not found</h1>
+    <p class="error-desc">The page you're looking for doesn't exist or has moved.</p>
+    <a href="{% url 'home' %}" class="btn-primary">Back to Home</a>
+  </div>
+</div>
+{% endblock %}

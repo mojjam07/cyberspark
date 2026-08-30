@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}About — CyberSpark{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/about.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="about-hero">
+  <div class="about-kicker">About Us</div>
+  <h1>Practical tech skills, built for the Nigerian market</h1>
+  <p>
+    CyberSpark IT Solutions builds courses that get people hired and businesses shipping —
+    web development, data, and DevOps taught by working practitioners, priced and paid for
+    the way our learners actually transact: card, bank transfer, or both.
+  </p>
+  <p>
+    Every course on CyberSpark Enroll comes with lifetime access, a certificate on completion,
+    and instructors who've actually shipped the things they teach.
+  </p>
+  <p>Questions? <a href="{% url 'contact' %}">Reach out</a> — we read every message.</p>
+</div>
+
+<div class="about-stats">
+  <div class="about-stat">
+    <div class="num">{{ total_courses }}</div>
+    <div class="lbl">Courses live</div>
+  </div>
+  <div class="about-stat">
+    <div class="num">{{ total_categories }}</div>
+    <div class="lbl">Categories</div>
+  </div>
+  <div class="about-stat">
+    <div class="num">2</div>
+    <div class="lbl">Ways to pay</div>
+  </div>
+</div>
+
+<div class="about-values">
+  <div class="about-value-item">
+    <h4>Practical first</h4>
+    <p>Every course is built around real, shippable skills — not just theory.</p>
+  </div>
+  <div class="about-value-item">
+    <h4>Built for Nigeria</h4>
+    <p>Pricing in Naira, and payment options that actually work here — Paystack or direct bank transfer.</p>
+  </div>
+  <div class="about-value-item">
+    <h4>Learn at your pace</h4>
+    <p>Lifetime access to every course you enroll in — no expiring subscriptions.</p>
+  </div>
+</div>
+{% endblock %}

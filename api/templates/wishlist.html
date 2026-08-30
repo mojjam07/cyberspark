@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Wishlist — CyberSpark{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/wishlist.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+  {% include '_dashboard_sidebar.html' with active_section='wishlist' %}
+
+  <main class="dashboard-main">
+    <div class="wishlist-head">
+      <h1>My Wishlist</h1>
+      <div class="sub">Courses you've saved for later</div>
+    </div>
+
+    {% if items %}
+    <div class="wishlist-grid">
+      {% for item in items %}
+      <a href="{% url 'course_detail' item.course.slug %}" class="course-card" style="text-decoration:none;">
+        <div class="course-thumb">
+          {% if item.course.thumbnail %}
+            <img src="{{ item.course.thumbnail }}" alt="{{ item.course.title }}" loading="lazy">
+          {% else %}
+            <div class="course-thumb-placeholder">{{ item.course.title|slice:":1"|upper }}</div>
+          {% endif %}
+        </div>
+        <div class="course-cat">{{ item.course.category.name }}</div>
+        <div class="course-title">{{ item.course.title }}</div>
+        <div class="course-instructor">by {{ item.course.instructor }}</div>
+        <div class="course-footer">
+          <span class="course-price">{{ item.course.display_price }}</span>
+          <span class="course-rating">{% if item.course.rating %}{{ item.course.rating }} ({{ item.course.rating_count }}){% else %}New{% endif %}</span>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </div>
+      <h4>Your wishlist is empty</h4>
+      <p>Save courses you're interested in to come back to them later.</p>
+      <a href="{% url 'courses' %}" class="btn-ghost">Browse courses</a>
+    </div>
+    {% endif %}
+  </main>
+</div>
+{% endblock %}

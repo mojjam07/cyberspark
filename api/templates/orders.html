@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Orders — CyberSpark{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/orders.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+  {% include '_dashboard_sidebar.html' with active_section='orders' %}
+
+  <main class="dashboard-main">
+    <div class="orders-head">
+      <h1>My Orders</h1>
+      <div class="sub">Track your payments and enrollment status</div>
+    </div>
+
+    {% for order in orders %}
+      <div class="order-row">
+        <div class="order-info">
+          <div class="title">{{ order.course.title }}</div>
+          <div class="meta">{{ order.get_method_display }} · {{ order.amount|floatformat:0 }} NGN · {{ order.created_at|date:"M d, Y H:i" }}</div>
+        </div>
+        <span class="order-status status-{{ order.status }}">{{ order.get_status_display }}</span>
+      </div>
+    {% empty %}
+      <div class="empty-state">
+        <div class="empty-state-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg>
+        </div>
+        <h4>No orders yet</h4>
+        <p>You haven't made any purchases — browse the catalog to find your first course.</p>
+        <a href="{% url 'courses' %}" class="btn-ghost">Browse courses</a>
+      </div>
+    {% endfor %}
+  </main>
+</div>
+{% endblock %}

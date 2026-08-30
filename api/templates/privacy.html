@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Privacy Policy — CyberSpark{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/legal.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="legal-wrap">
+  <h1>Privacy Policy</h1>
+  <div class="legal-updated">Last updated: {% now "F Y" %}</div>
+
+  <div class="legal-body">
+    <p><strong>Information we collect.</strong>
+    When you create an account, we collect your name and email address. When you enroll in a paid course,
+    we store the order amount, payment method, and status. If you pay by bank transfer, we store the proof
+    of payment file you upload so we can verify your payment. We do not store your card details — those are
+    handled directly by Paystack, our payment processor.</p>
+
+    <p><strong>How we use it.</strong>
+    Your information is used to give you access to purchased courses, send account and payment-related
+    emails (welcome, enrollment confirmation, payment confirmation, password resets), and respond to
+    messages you send us.</p>
+
+    <p><strong>Third parties.</strong>
+    We share payment information with Paystack solely to process transactions. We do not sell your personal
+    information to advertisers or other third parties.</p>
+
+    <p><strong>Data retention.</strong>
+    We retain account and order information for as long as your account is active, and as needed to comply
+    with legal and tax obligations.</p>
+
+    <p><strong>Your rights.</strong>
+    You can update your profile information at any time from your <a href="{% url 'account_settings' %}">Account page</a>.
+    To request deletion of your account and associated data, contact us via our <a href="{% url 'contact' %}">Contact page</a>.</p>
+
+    <p><strong>Cookies.</strong>
+    We use a session cookie to keep you logged in and a CSRF cookie for security. We do not use third-party
+    tracking or advertising cookies.</p>
+
+    <p><strong>Contact.</strong>
+    Questions about this policy? Reach us via our <a href="{% url 'contact' %}">Contact page</a>.</p>
+
+    <div class="legal-disclaimer">
+      This is a general template and not legal advice — have it reviewed against Nigeria's Data Protection
+      Act (NDPA) requirements before relying on it in production.
+    </div>
+  </div>
+</div>
+{% endblock %}

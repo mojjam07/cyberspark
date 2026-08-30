@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Learn — {{ course.title }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/learn.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="learn-wrap">
+
+  <div class="learn-head">
+    <h1>{{ course.title }}</h1>
+    <div class="sub">{{ course.instructor }} · {{ lessons|length }} lesson{{ lessons|length|pluralize }}</div>
+  </div>
+
+  <div class="learn-progress-banner">
+    <div class="learn-progress-top">
+      <span>Your progress</span>
+      <strong>{{ enrollment.progress }}%</strong>
+    </div>
+    <div class="learn-progress-track"><div class="learn-progress-fill" style="width:{{ enrollment.progress }}%;"></div></div>
+  </div>
+
+  {% for lesson in lessons %}
+  <div class="lesson-row">
+    <form method="post" action="{% url 'toggle_lesson' course.slug lesson.id %}" class="lesson-check-form">
+      {% csrf_token %}
+      <button type="submit" class="lesson-check {% if lesson.is_complete %}done{% endif %}" title="Toggle complete">
+        {% if lesson.is_complete %}✓{% endif %}
+      </button>
+    </form>
+    <div class="lesson-body">
+      <div class="lesson-title">{{ lesson.order }}. {{ lesson.title }}</div>
+      <div class="lesson-meta">{{ lesson.duration_minutes }} min{% if lesson.video_url %} · has video{% endif %}</div>
+      {% if lesson.content %}<p class="lesson-content">{{ lesson.content }}</p>{% endif %}
+      {% if lesson.video_url %}
+        <a href="{{ lesson.video_url }}" target="_blank" rel="noopener" class="lesson-video-link">Watch video ↗</a>
+      {% endif %}
+    </div>
+  </div>
+  {% empty %}
+  <div class="empty-state">
+    <div class="empty-state-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+    </div>
+    <h4>Content coming soon</h4>
+    <p>Lesson content for this course hasn't been added yet — check back soon.</p>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Checkout — {{ course.title }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/checkout.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="checkout-wrap">
+
+  <div class="checkout-summary">
+    <div class="kicker">Checkout</div>
+    <h1>{{ course.title }}</h1>
+    {% if applied_coupon %}
+      <div class="sub">
+        <span class="checkout-strike">{{ course.display_price }}</span>
+        Total due: <strong>NGN {{ final_amount|floatformat:0 }}</strong>
+        <span class="checkout-coupon-tag">{{ applied_coupon.code }} · -{{ applied_coupon.discount_percent }}%</span>
+      </div>
+    {% else %}
+      <div class="sub">Total due: <strong>{{ course.display_price }}</strong></div>
+    {% endif %}
+  </div>
+
+  <div class="coupon-bar">
+    {% if applied_coupon %}
+      <form method="post" class="coupon-form">
+        {% csrf_token %}
+        <input type="hidden" name="method" value="remove_coupon">
+        <span class="coupon-applied">✓ Coupon <strong>{{ applied_coupon.code }}</strong> applied</span>
+        <button type="submit" class="coupon-remove">Remove</button>
+      </form>
+    {% else %}
+      <form method="post" class="coupon-form">
+        {% csrf_token %}
+        <input type="hidden" name="method" value="apply_coupon">
+        {{ coupon_form.code }}
+        <button type="submit" class="btn-ghost coupon-apply-btn">Apply</button>
+      </form>
+    {% endif %}
+  </div>
+
+  <div class="checkout-grid">
+    <div class="pay-card">
+      <div class="pay-card-head">
+        <span class="pay-card-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        </span>
+        <h3>Pay with Card / Bank</h3>
+      </div>
+      <p class="desc">Instant confirmation via Paystack's secure checkout — you'll be redirected there to complete payment.</p>
+      {% if paystack_configured %}
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="method" value="paystack">
+          <button type="submit" class="btn-submit">Pay NGN {{ final_amount|floatformat:0 }} with Paystack</button>
+        </form>
+      {% else %}
+        <p class="pay-unavailable">Card payments are temporarily unavailable. Please use bank transfer.</p>
+      {% endif %}
+    </div>
+
+    <div class="pay-card">
+      <div class="pay-card-head">
+        <span class="pay-card-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        </span>
+        <h3>Direct Bank Transfer</h3>
+      </div>
+      <p class="desc">Transfer the exact amount below, then upload proof of payment. We'll confirm within 24 hours.</p>
+
+      <div class="bank-details">
+        <div class="bank-row"><span>Bank</span><span>{{ bank_details.bank_name }}</span></div>
+        <div class="bank-row"><span>Account Name</span><span>{{ bank_details.account_name }}</span></div>
+        <div class="bank-row"><span>Account Number</span><span>{{ bank_details.account_number }}</span></div>
+        <div class="bank-row"><span>Amount</span><span>NGN {{ final_amount|floatformat:0 }}</span></div>
+      </div>
+
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="method" value="bank_transfer">
+
+        <div class="form-group">
+          <label class="form-label">Payment proof (image or PDF)</label>
+          {{ bank_form.proof_of_payment }}
+          {% if bank_form.proof_of_payment.errors %}<ul class="checkout-errorlist">{% for e in bank_form.proof_of_payment.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Note (optional)</label>
+          {{ bank_form.payer_note }}
+        </div>
+
+        <button type="submit" class="btn-submit">Submit Payment Proof</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}All Courses — CyberSpark{% endblock %}
+
+{% block meta_description %}Browse practical courses in Web Development, Python, Data Science, and DevOps — built for the Nigerian market.{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/courses.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="courses-header">
+  <div>
+    <div class="catalog-tag">Catalog</div>
+    <h1>All Courses</h1>
+  </div>
+  <div>
+    <p>Courses across Frontend, Backend, DevOps and Data Science. Taught by industry experts. Lifetime access with every purchase.</p>
+  </div>
+</div>
+
+<form method="get" class="filter-bar" id="coursesFilterForm">
+  <a href="{% url 'courses' %}" class="filter-chip {% if not active_category %}active{% endif %}">All</a>
+  {% for cat in categories %}
+    <a href="?category={{ cat.slug }}" class="filter-chip {% if active_category == cat.slug %}active{% endif %}">{{ cat.name }}</a>
+  {% endfor %}
+  <div class="search-box">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" name="q" id="courseSearchInput" value="{{ query }}" placeholder="Search courses..." autocomplete="off">
+  </div>
+</form>
+
+<div class="courses-count" id="coursesCount" data-total="{{ course_list|length }}">
+  {{ course_list|length }} course{{ course_list|length|pluralize }}{% if active_category or query %} found{% endif %}
+</div>
+
+<div class="courses-full-grid" id="coursesGrid">
+  {% for course in course_list %}
+  <a href="{% url 'course_detail' course.slug %}" class="course-card-full" data-title="{{ course.title|lower }}" style="text-decoration:none;">
+    <div class="course-img">
+      {% if course.thumbnail %}
+        <img src="{{ course.thumbnail }}" alt="{{ course.title }}" loading="lazy">
+      {% else %}
+        {{ course.category.name|slice:":1"|upper|default:"?" }}
+      {% endif %}
+    </div>
+    <div class="course-cat">{{ course.category.name|default:course.level|capfirst }}</div>
+    <div class="course-title">{{ course.title }}</div>
+    <div class="course-instructor">{{ course.instructor }} · {{ course.duration_hours }}h video · {{ course.level }}</div>
+    <div class="course-footer">
+      <span class="course-price">{{ course.display_price }}</span>
+      <span class="course-rating">
+        ★ {{ course.rating|floatformat:1|default:"New" }} ({{ course.rating_count }})
+      </span>
+    </div>
+  </a>
+  {% empty %}
+  <div class="courses-empty-state" style="grid-column: 1/-1;">
+    <div class="empty-icon">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+    </div>
+    <h3>No courses match your search</h3>
+    <p>Try a different keyword or browse all categories.</p>
+    <a href="{% url 'courses' %}" class="btn-ghost">View all courses</a>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="courses-empty-state" id="coursesLiveEmpty" style="display:none; grid-column: 1/-1;">
+  <div class="empty-icon">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+  </div>
+  <h3>No courses match "<span id="liveEmptyQuery"></span>"</h3>
+  <p>Try a different keyword.</p>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const input = document.getElementById('courseSearchInput');
+  const grid = document.getElementById('coursesGrid');
+  const liveEmpty = document.getElementById('coursesLiveEmpty');
+  const liveEmptyQuery = document.getElementById('liveEmptyQuery');
+  const countLabel = document.getElementById('coursesCount');
+  if (!input || !grid) return;
+
+  const cards = Array.from(grid.querySelectorAll('.course-card-full'));
+  let debounceTimer;
+
+  function filterCards() {
+    const q = input.value.trim().toLowerCase();
+    let visibleCount = 0;
+    cards.forEach(card => {
+      const matches = !q || card.dataset.title.includes(q);
+      card.style.display = matches ? '' : 'none';
+      if (matches) visibleCount++;
+    });
+
+    if (liveEmpty) {
+      liveEmpty.style.display = (visibleCount === 0 && q) ? 'flex' : 'none';
+      if (liveEmptyQuery) liveEmptyQuery.textContent = q;
+    }
+    if (countLabel && cards.length > 0) {
+      countLabel.textContent = visibleCount + ' course' + (visibleCount === 1 ? '' : 's') + (q ? ' found' : '');
+    }
+  }
+
+  input.addEventListener('input', function () {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(filterCards, 120);
+  });
+
+  // Prevent the full-page form submit when JS is handling search live —
+  // Enter key just confirms what's already filtered.
+  document.getElementById('coursesFilterForm').addEventListener('submit', function (e) {
+    if (document.activeElement === input) e.preventDefault();
+  });
+});
+</script>
+{% endblock %}

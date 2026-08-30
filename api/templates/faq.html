@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}FAQ — CyberSpark{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/faq.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="faq-wrap">
+  <div class="faq-kicker">Frequently Asked Questions</div>
+  <h1>How can we help?</h1>
+
+  <details class="faq-item" open>
+    <summary>How do I pay for a course?
+      <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </summary>
+    <div class="faq-answer">At checkout you can choose to pay instantly by card via Paystack, or by direct bank transfer — upload your proof of payment and we'll confirm your enrollment within 24 hours.</div>
+  </details>
+
+  <details class="faq-item">
+    <summary>How long do I have access to a course?
+      <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </summary>
+    <div class="faq-answer">Every paid course comes with lifetime access — learn at your own pace, revisit lessons whenever you like.</div>
+  </details>
+
+  <details class="faq-item">
+    <summary>Can I get a refund?
+      <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </summary>
+    <div class="faq-answer">Yes — see our <a href="{% url 'terms' %}">Terms of Service</a> for the full refund policy. In short: full refund within 7 days if you've completed less than 20% of the course.</div>
+  </details>
+
+  <details class="faq-item">
+    <summary>I paid by bank transfer — why isn't my course showing yet?
+      <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </summary>
+    <div class="faq-answer">Bank transfers are reviewed manually and confirmed within 24 hours. Check your <a href="{% url 'my_orders' %}">Orders page</a> for status, or contact us if it's been longer.</div>
+  </details>
+
+  <details class="faq-item">
+    <summary>Do I get a certificate?
+      <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </summary>
+    <div class="faq-answer">Yes — every course includes a certificate of completion once you finish all lessons.</div>
+  </details>
+
+  <details class="faq-item">
+    <summary>I forgot my password — what do I do?
+      <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </summary>
+    <div class="faq-answer">Use the <a href="{% url 'password_reset' %}">Forgot password</a> link on the sign-in page to reset it by email.</div>
+  </details>
+
+  <details class="faq-item">
+    <summary>Still have questions?
+      <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </summary>
+    <div class="faq-answer"><a href="{% url 'contact' %}">Reach out to us</a> — we read every message.</div>
+  </details>
+</div>
+{% endblock %}

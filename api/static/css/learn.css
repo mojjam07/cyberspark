@@ -1,0 +1,82 @@
+/* Course Learn page */
+
+.learn-wrap { padding: clamp(1.5rem, 6vw, 3.5rem) clamp(1.5rem, 6vw, 4rem); }
+
+.learn-head { margin-bottom: 1.5rem; }
+.learn-head h1 {
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 3.5vw, 1.9rem);
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 0.35rem;
+}
+.learn-head .sub { font-size: 13px; color: var(--text-2); }
+
+.learn-progress-banner {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.75rem;
+}
+.learn-progress-top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--text-2);
+  margin-bottom: 0.6rem;
+}
+.learn-progress-top strong { color: var(--text); font-weight: 700; }
+.learn-progress-track {
+  height: 8px;
+  background: var(--bg-3);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.learn-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.lesson-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 0.75rem;
+  background: var(--bg-card);
+}
+
+.lesson-check-form { flex-shrink: 0; padding-top: 2px; }
+.lesson-check {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  background: transparent; cursor: pointer; color: var(--bg);
+  font-size: 13px; font-weight: 700;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.lesson-check.done { background: var(--accent); border-color: var(--accent); }
+.lesson-check:hover { border-color: var(--border-hover); }
+
+.lesson-body { flex: 1; min-width: 0; }
+.lesson-title { font-weight: 600; color: var(--text); font-size: 14px; }
+.lesson-meta { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+.lesson-content { font-size: 13px; color: var(--text-2); margin-top: 8px; line-height: 1.6; }
+.lesson-video-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+@media (max-width: 480px) {
+  .lesson-row { padding: 0.85rem 1rem; }
+}

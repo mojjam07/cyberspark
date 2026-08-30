@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ instructor.name }} — CyberSpark{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/instructor.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="instr-hero">
+  {% if instructor.photo_url %}
+    <img src="{{ instructor.photo_url }}" alt="{{ instructor.name }}" class="instr-photo">
+  {% else %}
+    <div class="instr-photo-placeholder">{{ instructor.name|slice:":1"|upper }}</div>
+  {% endif %}
+  <div>
+    <div class="instr-name">{{ instructor.name }}</div>
+    {% if instructor.title %}<div class="instr-title">{{ instructor.title }}</div>{% endif %}
+  </div>
+</div>
+
+{% if instructor.bio %}
+<div class="instr-bio">{{ instructor.bio }}</div>
+{% endif %}
+
+<div class="instr-courses-head">Courses by {{ instructor.name }}</div>
+<div class="courses-full-grid">
+  {% for course in courses %}
+  <a href="{% url 'course_detail' course.slug %}" class="course-card-full" style="text-decoration:none;">
+    <div class="course-img">
+      {% if course.thumbnail %}
+        <img src="{{ course.thumbnail }}" alt="{{ course.title }}" loading="lazy">
+      {% else %}
+        {{ course.category.name|slice:":1"|upper|default:"?" }}
+      {% endif %}
+    </div>
+    <div class="course-cat">{{ course.category.name }}</div>
+    <div class="course-title">{{ course.title }}</div>
+    <div class="course-instructor">{{ course.duration_hours }}h video · {{ course.level }}</div>
+    <div class="course-footer">
+      <span class="course-price">{{ course.display_price }}</span>
+      <span class="course-rating">★ {{ course.rating|floatformat:1|default:"New" }} ({{ course.rating_count }})</span>
+    </div>
+  </a>
+  {% empty %}
+  <div class="courses-empty-state" style="grid-column: 1/-1;">
+    <h3>No published courses yet</h3>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

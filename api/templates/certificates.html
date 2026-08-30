@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Certificates — CyberSpark{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'css/certificates.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+  {% include '_dashboard_sidebar.html' with active_section='certificates' %}
+
+  <main class="dashboard-main">
+    <div class="cert-head">
+      <h1>Certificates</h1>
+      <div class="sub">Awarded once you complete every lesson in a course</div>
+    </div>
+
+    {% if completed %}
+    <div class="cert-grid">
+      {% for e in completed %}
+      <div class="cert-card">
+        <div class="cert-card-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
+        </div>
+        <div class="cert-card-title">{{ e.course.title }}</div>
+        <div class="cert-card-date">Completed {{ e.completed_at|date:"M d, Y" }}</div>
+        <a href="{% url 'certificate_detail' e.course.slug %}" class="btn-ghost" style="text-decoration:none;">View Certificate</a>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
+      </div>
+      <h4>No certificates yet</h4>
+      <p>Complete every lesson in a course to earn your certificate.</p>
+      <a href="{% url 'my_courses' %}" class="btn-ghost">View my courses</a>
+    </div>
+    {% endif %}
+  </main>
+</div>
+{% endblock %}

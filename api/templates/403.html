@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Too Many Attempts — CyberSpark{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/error.css' %}">
+{% endblock %}
+{% block content %}
+<div class="error-wrap">
+  <div>
+    <div class="error-code">429</div>
+    <h1 class="error-title">Too many attempts</h1>
+    <p class="error-desc">You've made too many requests in a short time. Please wait a minute and try again.</p>
+    <a href="{% url 'home' %}" class="btn-primary">Back to Home</a>
+  </div>
+</div>
+{% endblock %}

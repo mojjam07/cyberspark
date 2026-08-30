@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Progress — CyberSpark{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'css/progress.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+  {% include '_dashboard_sidebar.html' with active_section='progress' %}
+
+  <main class="dashboard-main">
+    <div class="pg-head">
+      <h1>Progress</h1>
+      <div class="sub">Your learning activity across every course</div>
+    </div>
+
+    <div class="pg-stats">
+      <div class="pg-stat">
+        <div class="val">{{ total_count }}</div>
+        <div class="lbl">Enrolled</div>
+      </div>
+      <div class="pg-stat">
+        <div class="val">{{ in_progress_count }}</div>
+        <div class="lbl">In Progress</div>
+      </div>
+      <div class="pg-stat">
+        <div class="val">{{ completed_count }}</div>
+        <div class="lbl">Completed</div>
+      </div>
+      <div class="pg-stat">
+        <div class="val">{{ avg_progress|floatformat:0 }}%</div>
+        <div class="lbl">Avg Progress</div>
+      </div>
+    </div>
+
+    {% if enrollments %}
+    <div class="pg-list-title">All Courses</div>
+    {% for e in enrollments %}
+    <div class="pg-row">
+      <div class="pg-row-top">
+        <span class="pg-row-title">{{ e.course.title }}</span>
+        <span class="pg-row-pct">{{ e.progress }}%</span>
+      </div>
+      <div class="pg-track"><div class="pg-fill" style="width:{{ e.progress }}%;"></div></div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </div>
+      <h4>No progress to show yet</h4>
+      <p>Enroll in a course and start learning to see your progress here.</p>
+      <a href="{% url 'courses' %}" class="btn-ghost">Browse courses</a>
+    </div>
+    {% endif %}
+  </main>
+</div>
+{% endblock %}

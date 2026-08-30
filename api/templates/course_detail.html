@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ course.title }} — CyberSpark{% endblock %}
+
+{% block meta_description %}{{ course.description|truncatewords:30 }}{% endblock %}
+{% block og_type %}website{% endblock %}
+{% block og_title %}{{ course.title }} — CyberSpark{% endblock %}
+{% block og_description %}{{ course.description|truncatewords:30 }}{% endblock %}
+{% block og_image %}{% if course.thumbnail %}<meta property="og:image" content="{{ course.thumbnail }}">{% endif %}{% endblock %}
+{% block twitter_title %}{{ course.title }}{% endblock %}
+{% block twitter_description %}{{ course.description|truncatewords:20 }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/course-detail.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="cd-hero">
+
+  <div class="cd-breadcrumb">
+    <a href="{% url 'courses' %}">Courses</a>
+    <span>/</span>
+    <span>{{ course.category.name }}</span>
+  </div>
+
+  <div class="cd-layout">
+    <div>
+      <span class="cd-level-badge">{{ course.level }}</span>
+      <h1 class="cd-title">{{ course.title }}</h1>
+      <p class="cd-description">{{ course.description }}</p>
+
+      <div class="cd-meta-row">
+        <span class="cd-meta-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a6 6 0 0 1 12 0v2"/></svg>
+          Instructor:
+          {% if course.instructor_profile %}
+            <a href="{% url 'instructor_detail' course.instructor_profile.slug %}" style="color:var(--accent); text-decoration:none;"><strong>{{ course.instructor }}</strong></a>
+          {% else %}
+            <strong>{{ course.instructor }}</strong>
+          {% endif %}
+        </span>
+        <span class="cd-meta-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+          {{ course.duration_hours }}h video
+        </span>
+        {% if course.rating_count %}
+        <span class="cd-meta-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+          {{ course.rating }} ({{ course.rating_count }} ratings)
+        </span>
+        {% endif %}
+      </div>
+
+      {% if course.lessons.all %}
+      <div class="cd-curriculum">
+        <h2>Curriculum</h2>
+        {% for lesson in course.lessons.all %}
+        <div class="cd-lesson-row">
+          <span class="cd-lesson-num">{{ lesson.order }}</span>
+          <span class="cd-lesson-title">{{ lesson.title }}</span>
+          <span class="cd-lesson-dur">{{ lesson.duration_minutes }} min</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="cd-reviews">
+        <h2>Reviews {% if course.rating_count %}<span class="cd-reviews-avg">{{ course.rating }} · {{ course.rating_count }} review{{ course.rating_count|pluralize }}</span>{% endif %}</h2>
+
+        {% if is_enrolled %}
+        <form method="post" action="{% url 'submit_review' course.slug %}" class="cd-review-form">
+          {% csrf_token %}
+          <div class="form-group">
+            <label class="form-label">{% if user_review %}Update your review{% else %}Rate this course{% endif %}</label>
+            {{ review_form.rating }}
+          </div>
+          <div class="form-group">
+            {{ review_form.comment }}
+          </div>
+          <button type="submit" class="btn-ghost">{% if user_review %}Update Review{% else %}Post Review{% endif %}</button>
+        </form>
+        {% endif %}
+
+        {% for review in reviews %}
+        <div class="cd-review-item">
+          <div class="cd-review-top">
+            <span class="cd-review-author">{{ review.user.get_full_name|default:review.user.username }}</span>
+            <span class="cd-review-stars">{% for i in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}{% endfor %}</span>
+          </div>
+          {% if review.comment %}<p class="cd-review-comment">{{ review.comment }}</p>{% endif %}
+        </div>
+        {% empty %}
+        {% if not is_enrolled %}<p class="cd-no-reviews">No reviews yet — be the first to enroll and share your thoughts.</p>{% endif %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="cd-purchase-card">
+      <div class="cd-price">{{ course.display_price }}</div>
+
+      {% if is_enrolled %}
+        <a href="{% url 'course_learn' course.slug %}" class="btn-submit" style="text-decoration:none;">Continue Learning →</a>
+      {% elif course.is_free %}
+        <form method="post" action="{% url 'enroll_free' course.slug %}">
+          {% csrf_token %}
+          <button type="submit" class="btn-submit">Enroll for Free</button>
+        </form>
+      {% else %}
+        <a href="{% url 'checkout' course.slug %}" class="btn-submit" style="text-decoration:none;">
+          Enroll Now — {{ course.display_price }}
+        </a>
+      {% endif %}
+
+      {% if user.is_authenticated and not is_enrolled %}
+      <form method="post" action="{% url 'toggle_wishlist' course.slug %}" class="cd-wishlist-form">
+        {% csrf_token %}
+        <button type="submit" class="cd-wishlist-btn {% if is_wishlisted %}active{% endif %}">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="{% if is_wishlisted %}currentColor{% else %}none{% endif %}" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          {% if is_wishlisted %}Saved to Wishlist{% else %}Save for Later{% endif %}
+        </button>
+      </form>
+      {% endif %}
+
+      <div class="cd-purchase-perks">
+        <span class="cd-perk"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>Lifetime access</span>
+        <span class="cd-perk"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>Certificate on completion</span>
+        <span class="cd-perk"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>Card or bank transfer</span>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
