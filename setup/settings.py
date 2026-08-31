@@ -191,9 +191,12 @@ if DEBUG:
         "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
     }
 else:
+    # CompressedStaticFilesStorage: compresses (gzip) static files for smaller downloads,
+    # served via WhiteNoise. No manifest required, so no 500 errors if collectstatic fails.
+    # WhiteNoise's caching headers replace per-file cache busting.
     STORAGES = {
         "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
-        "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+        "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
     }
 
 if USE_CLOUDINARY:
