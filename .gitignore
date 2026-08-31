@@ -22,3 +22,5 @@ media/
 .DS_Store
 
 *.md
+
+gen.py
