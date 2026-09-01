@@ -180,13 +180,9 @@ USE_TZ = True
 # ------------------------------------------------------------------
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
-# No STATICFILES_DIRS needed: 'api' is a local app in INSTALLED_APPS, so its
-# api/static/ directory is already picked up automatically by Django's
-# AppDirectoriesFinder. Adding it again here would just cause duplicate-file
-# warnings during collectstatic.
+
+# Don't add STATICFILES_DIRS for a non-existent /static/ directory.
+# Django's AppDirectoriesFinder will automatically discover api/static/ from INSTALLED_APPS.
 
 if DEBUG:
     STORAGES = {
@@ -201,6 +197,9 @@ else:
         "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
         "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
     }
+
+# Legacy STATICFILES_STORAGE setting for backward compatibility with cloudinary_storage
+STATICFILES_STORAGE = STORAGES["staticfiles"]["BACKEND"]
 
 if USE_CLOUDINARY:
     # Persistent media storage — required in production if you rely on
