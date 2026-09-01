@@ -190,12 +190,13 @@ if DEBUG:
         "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
     }
 else:
-    # CompressedStaticFilesStorage: compresses (gzip) static files for smaller downloads,
-    # served via WhiteNoise. No manifest required, so no 500 errors if collectstatic fails.
-    # WhiteNoise's caching headers replace per-file cache busting.
+    # Use WhiteNoise's base StaticFilesStorage (no compression).
+    # Compression via CompressedStaticFilesStorage can fail if referenced static files
+    # from installed apps (e.g., cloudinary) don't exist on disk after collection.
+    # WhiteNoise still serves with optimal caching headers without compression.
     STORAGES = {
         "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
-        "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
+        "staticfiles": {"BACKEND": "whitenoise.storage.StaticFilesStorage"},
     }
 
 # Legacy STATICFILES_STORAGE setting for backward compatibility with cloudinary_storage
