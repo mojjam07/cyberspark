@@ -1,0 +1,164 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}CyberSpark — Practical Tech Courses{% endblock %}</title>
+
+<link rel="icon" type="image/png" href="{% static 'logo.png' %}">
+
+{% block meta %}
+<meta name="description" content="{% block meta_description %}Practical web development, data, and DevOps courses for the Nigerian market. Lifetime access, pay by card or bank transfer.{% endblock %}">
+<meta property="og:type" content="{% block og_type %}website{% endblock %}">
+<meta property="og:site_name" content="CyberSpark Enroll">
+<meta property="og:title" content="{% block og_title %}CyberSpark — Practical Tech Courses{% endblock %}">
+<meta property="og:description" content="{% block og_description %}Practical web development, data, and DevOps courses for the Nigerian market. Lifetime access, pay by card or bank transfer.{% endblock %}">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+{% block og_image %}{% endblock %}
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{% block twitter_title %}CyberSpark — Practical Tech Courses{% endblock %}">
+<meta name="twitter:description" content="{% block twitter_description %}Practical web development, data, and DevOps courses for the Nigerian market.{% endblock %}">
+{% endblock %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #0c0c0d;
+    --bg-2: #111114;
+    --bg-3: #16161a;
+    --bg-card: #1a1a1f;
+    --border: rgba(255,255,255,0.07);
+    --border-hover: rgba(255,255,255,0.14);
+    --text: #f0ece4;
+    --text-2: #888680;
+    --text-3: #4a4844;
+    --accent: #b8ff57;
+    --accent-dim: rgba(184,255,87,0.12);
+    --accent-mid: rgba(184,255,87,0.25);
+    --red: #ff5757;
+    --blue: #57b8ff;
+    --font-display: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  a { color: inherit; }
+  img { max-width: 100%; display: block; }
+  button, input { font: inherit; }
+
+  body.transition-ready main,
+  body.transition-ready nav {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+
+  body:not(.transition-ready) main,
+  body:not(.transition-ready) nav {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+</style>
+
+<!-- {# ✅ extra_css stays OUTSIDE any <style> tag in base.html #} -->
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/redesign.css' %}">
+{% block extra_css %}{% endblock %}
+</head>
+
+<body>
+
+<nav id="main-nav" class="site-nav">
+  <a href="{% url 'home' %}" class="brand" aria-label="CyberSpark home">
+    <img src="{% static 'logo.png' %}" alt="CyberSpark logo" class="brand-logo">
+    <span>Cyber<span>Spark</span></span>
+  </a>
+
+  <button class="hamburger" id="hamburger-btn" aria-label="Toggle menu" aria-expanded="false">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2">
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </button>
+
+  <div class="nav-menu" id="nav-menu">
+    <a href="{% url 'home' %}" class="nav-link">Home</a>
+    <a href="{% url 'courses' %}" class="nav-link">Courses</a>
+
+    {% if user.is_authenticated %}
+      <div class="nav-account" id="navAccount">
+        <button type="button" class="nav-account-trigger" id="navAccountTrigger" aria-haspopup="true" aria-expanded="false">
+          <span class="nav-account-avatar">{{ user.get_full_name|default:user.username|slice:":1"|upper }}</span>
+          <span class="nav-account-label">Account</span>
+          <svg class="nav-account-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="nav-account-panel" id="navAccountPanel">
+          <a href="{% url 'dashboard' %}" class="nav-link">Dashboard</a>
+          <a href="{% url 'my_orders' %}" class="nav-link">My Orders</a>
+          <a href="{% url 'my_wishlist' %}" class="nav-link">Wishlist</a>
+          <a href="{% url 'account_settings' %}" class="nav-link">Account Settings</a>
+          <a href="{% url 'logout' %}" class="nav-link nav-signout">Sign Out</a>
+        </div>
+      </div>
+    {% else %}
+      <a href="{% url 'login' %}" class="nav-link">Sign In</a>
+      <a href="{% url 'signup' %}" class="nav-cta">Get Started</a>
+    {% endif %}
+  </div>
+</nav>
+
+<main>
+  {% if messages %}{% include 'messages.html' %}{% endif %}
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="site-footer">
+  <div class="footer-brand-block">
+    <div class="footer-brand">
+      <img src="{% static 'footer_logo.png' %}" alt="Powered by CyberSpark" class="footer-brand-logo">
+      <div class="footer-brand-copy">
+        <span class="footer-powered">Powered by</span>
+        <a href="{% url 'home' %}" class="footer-brand-name">Cyber<span>Spark</span></a>
+      </div>
+    </div>
+    <p>Practical tech courses for the Nigerian market — built by CyberSpark IT Solutions.</p>
+  </div>
+  <div class="footer-links">
+    <div>
+      <div class="footer-title">Company</div>
+      <a href="{% url 'about' %}">About</a>
+      <a href="{% url 'contact' %}">Contact</a>
+      <a href="{% url 'faq' %}">FAQ</a>
+    </div>
+    <div>
+      <div class="footer-title">Legal</div>
+      <a href="{% url 'terms' %}">Terms of Service</a>
+      <a href="{% url 'privacy' %}">Privacy Policy</a>
+    </div>
+  </div>
+</footer>
+
+<div class="view-label">
+  Viewing: <span id="currentView">{{ view_name|default:"Home" }}</span>
+</div>
+
+<script src="{% static 'js/app.js' %}"></script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -180,6 +180,9 @@ USE_TZ = True
 # ------------------------------------------------------------------
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
 # No STATICFILES_DIRS needed: 'api' is a local app in INSTALLED_APPS, so its
 # api/static/ directory is already picked up automatically by Django's
 # AppDirectoriesFinder. Adding it again here would just cause duplicate-file
