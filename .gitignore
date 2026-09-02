@@ -12,7 +12,7 @@ env/
 
 # Django
 db.sqlite3
-staticfiles/
+# staticfiles/
 media/
 *.log
 

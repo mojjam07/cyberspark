@@ -1,0 +1,49 @@
+/* Account Settings page */
+
+.account-head { margin-bottom: clamp(1.5rem, 4vw, 2.5rem); }
+.account-head h1 {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 0.35rem;
+}
+.account-head .sub { font-size: 13px; color: var(--text-2); }
+
+.account-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.account-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: clamp(1.25rem, 4vw, 1.75rem);
+}
+.account-card h3 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  color: var(--text);
+  margin-bottom: 1.25rem;
+}
+.account-card .btn-submit { width: 100%; }
+
+.account-input-disabled {
+  width: 100%;
+  min-height: 44px;
+  background: var(--bg-3);
+  color: var(--text-3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 11px 14px;
+  opacity: 0.7;
+}
+
+.account-errorlist { list-style: none; color: var(--red); font-size: 12px; margin: 4px 0 0; padding: 0; }
+
+@media (max-width: 700px) {
+  .account-grid { grid-template-columns: 1fr; }
+}

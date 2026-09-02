@@ -1,0 +1,32 @@
+/* 404 page */
+
+.error-wrap {
+  min-height: calc(100vh - clamp(56px, 8vw, 64px));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: clamp(1.5rem, 6vw, 3rem);
+}
+
+.error-code {
+  font-family: var(--font-display);
+  font-size: clamp(4.5rem, 16vw, 7rem);
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.error-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 4vw, 1.5rem);
+  color: var(--text);
+  margin: 1rem 0 0.5rem;
+}
+
+.error-desc {
+  color: var(--text-2);
+  font-size: 14px;
+  margin-bottom: 1.75rem;
+}
