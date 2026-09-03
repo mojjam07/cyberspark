@@ -1,0 +1,166 @@
+{% extends "admin/index.html" %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin: 1rem 0 1.5rem;
+  }
+  .dashboard-card {
+    background: #fff;
+    border: 1px solid #d0d7de;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+  }
+  .dashboard-card .label {
+    color: #57606a;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.5rem;
+  }
+  .dashboard-card .value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1f2937;
+    line-height: 1.1;
+  }
+  .dashboard-card .value small {
+    font-size: 0.8rem;
+    color: #57606a;
+    margin-left: 0.25rem;
+  }
+  .dashboard-section {
+    background: #fff;
+    border: 1px solid #d0d7de;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  .dashboard-section h2 {
+    margin: 0 0 0.75rem;
+    font-size: 1.1rem;
+    color: #1f2937;
+  }
+  .dashboard-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .dashboard-table th,
+  .dashboard-table td {
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 0.55rem 0.35rem;
+    font-size: 0.92rem;
+  }
+  .dashboard-table th {
+    color: #374151;
+    font-weight: 600;
+  }
+  .dashboard-table td a {
+    color: #0f172a;
+    text-decoration: none;
+  }
+  .dashboard-table td a:hover {
+    text-decoration: underline;
+  }
+  .status-pill {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    background: #eef2ff;
+    color: #4338ca;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-grid">
+  <div class="dashboard-card">
+    <div class="label">Total users</div>
+    <div class="value">{{ dashboard_stats.total_users }}</div>
+  </div>
+  <div class="dashboard-card">
+    <div class="label">Total courses</div>
+    <div class="value">{{ dashboard_stats.total_courses }}</div>
+  </div>
+  <div class="dashboard-card">
+    <div class="label">Enrollments</div>
+    <div class="value">{{ dashboard_stats.total_enrollments }}</div>
+  </div>
+  <div class="dashboard-card">
+    <div class="label">Pending reviews</div>
+    <div class="value">{{ dashboard_stats.pending_reviews }}</div>
+  </div>
+  <div class="dashboard-card">
+    <div class="label">Gross revenue</div>
+    <div class="value">NGN {{ dashboard_stats.gross_revenue|floatformat:0 }}</div>
+  </div>
+</div>
+
+<div class="dashboard-section">
+  <h2>Recent bank-transfer reviews</h2>
+  {% if dashboard_stats.recent_pending_reviews %}
+    <table class="dashboard-table">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Course</th>
+          <th>Amount</th>
+          <th>Submitted</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in dashboard_stats.recent_pending_reviews %}
+          <tr>
+            <td>{{ order.user.get_full_name|default:order.user.username }}</td>
+            <td><a href="{% url 'admin:api_order_change' order.pk %}">{{ order.course.title }}</a></td>
+            <td>NGN {{ order.amount|floatformat:0 }}</td>
+            <td>{{ order.created_at|date:"M d, Y" }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No pending bank-transfer reviews.</p>
+  {% endif %}
+</div>
+
+<div class="dashboard-section">
+  <h2>Recent orders</h2>
+  {% if dashboard_stats.recent_orders %}
+    <table class="dashboard-table">
+      <thead>
+        <tr>
+          <th>Reference</th>
+          <th>User</th>
+          <th>Course</th>
+          <th>Status</th>
+          <th>Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in dashboard_stats.recent_orders %}
+          <tr>
+            <td><a href="{% url 'admin:api_order_change' order.pk %}">{{ order.reference }}</a></td>
+            <td>{{ order.user.get_full_name|default:order.user.username }}</td>
+            <td>{{ order.course.title }}</td>
+            <td><span class="status-pill">{{ order.get_status_display }}</span></td>
+            <td>NGN {{ order.amount|floatformat:0 }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No orders yet.</p>
+  {% endif %}
+</div>
+
+{{ block.super }}
+{% endblock %}

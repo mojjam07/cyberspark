@@ -1,9 +1,43 @@
 from django.contrib import admin
+from django.contrib.auth import get_user_model
+from django.db.models import Sum
 from django.utils import timezone
 
 from .models import (
     Category, Coupon, Course, Enrollment, Instructor, Lesson, LessonProgress, Order, Review, Wishlist,
 )
+
+User = get_user_model()
+
+
+def get_dashboard_stats():
+    paid_orders = Order.objects.filter(status=Order.Status.PAID)
+    pending_reviews = Order.objects.filter(status=Order.Status.AWAITING_REVIEW)
+    return {
+        'total_users': User.objects.count(),
+        'total_courses': Course.objects.count(),
+        'total_enrollments': Enrollment.objects.count(),
+        'pending_reviews': pending_reviews.count(),
+        'gross_revenue': paid_orders.aggregate(total=Sum('amount'))['total'] or 0,
+        'recent_orders': Order.objects.select_related('user', 'course').order_by('-created_at')[:5],
+        'recent_pending_reviews': pending_reviews.select_related('user', 'course').order_by('-created_at')[:5],
+    }
+
+
+original_each_context = admin.site.each_context
+
+def custom_each_context(request):
+    context = original_each_context(request)
+    context['dashboard_stats'] = get_dashboard_stats()
+    return context
+
+
+admin.site.each_context = custom_each_context
+admin.site.index_template = 'admin/custom_index.html'
+
+admin.site.site_title = 'CyberSpark Admin'
+admin.site.site_header = 'CyberSpark Enroll Administration'
+admin.site.index_title = 'Management'
 
 
 class LessonInline(admin.TabularInline):

@@ -92,15 +92,16 @@ main { display: block; }
 .brand span { color: var(--text); }
 .brand span span { color: var(--accent); }
 .brand-logo {
+  display: block;
   width: clamp(26px, 2vw, 34px);
   height: clamp(26px, 2vw, 34px);
-  object-fit: contain;
+  object-fit: cover;
   border-radius: 10px;
-  padding: 4px;
   background: rgba(184,255,87,0.12);
   border: 1px solid rgba(184,255,87,0.2);
   box-shadow: 0 0 0 1px rgba(184,255,87,0.06);
   flex-shrink: 0;
+  box-sizing: border-box;
 }
 .nav-menu {
   display: flex;

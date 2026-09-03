@@ -55,6 +55,10 @@ if render_host and render_host not in ALLOWED_HOSTS:
 if not DEBUG:
     ALLOWED_HOSTS.append(".onrender.com")
 
+ADMIN_URL = os.environ.get("ADMIN_URL", "admin").strip("/")
+ADMIN_ALLOWED_HOSTS = env_list("ADMIN_ALLOWED_HOSTS", default="")
+ADMIN_ALLOWED_IPS = env_list("ADMIN_ALLOWED_IPS", default="")
+
 CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS", "")
 if render_host:
     CSRF_TRUSTED_ORIGINS.append(f"https://{render_host}")
@@ -92,6 +96,7 @@ if USE_CLOUDINARY:
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'setup.middleware.AdminSecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -112,6 +117,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'api.context_processors.market_context',
             ],
         },
     },

@@ -27,14 +27,38 @@ from . import emails, paystack
 logger = logging.getLogger('api')
 
 
+def get_market_country(request):
+    """Return a friendly country label and market adjective for the visitor."""
+    country_code = (
+        request.META.get('HTTP_CF_IPCOUNTRY')
+        or request.META.get('CF_IPCOUNTRY')
+        or request.COOKIES.get('country_code')
+        or 'NG'
+    ).upper()
+
+    country_map = {
+        'NG': ('Nigeria', 'Nigerian'),
+        'US': ('United States', 'US'),
+        'GB': ('United Kingdom', 'UK'),
+        'KE': ('Kenya', 'Kenyan'),
+        'GH': ('Ghana', 'Ghanaian'),
+        'ZA': ('South Africa', 'South African'),
+    }
+
+    return country_map.get(country_code, ('Nigeria', 'Nigerian'))
+
+
 def home(request):
     stats = Course.objects.filter(is_published=True).aggregate(
         total_courses=Count('id'),
         avg_rating=Avg('rating'),
     )
     featured_courses = Course.objects.filter(is_published=True, is_featured=True).select_related('category')[:6]
+    country_name, market_name = get_market_country(request)
     context = {
         'view_name': 'Home',
+        'country_name': country_name,
+        'market_name': market_name,
         'hero_stats': [
             {'val': stats['total_courses'] or 0, 'lbl': 'Courses live'},
             {'val': f"{stats['avg_rating']:.1f}" if stats['avg_rating'] else '0', 'lbl': 'Avg rating'},
