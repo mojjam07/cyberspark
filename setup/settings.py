@@ -65,7 +65,9 @@ if not DEBUG:
 # ------------------------------------------------------------------
 # Applications
 # ------------------------------------------------------------------
-USE_CLOUDINARY = bool(os.environ.get("CLOUDINARY_URL"))
+# Tests always use local file storage so they never make network calls,
+# even if CLOUDINARY_URL happens to be set in the developer's environment.
+USE_CLOUDINARY = bool(os.environ.get("CLOUDINARY_URL")) and 'test' not in sys.argv
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -76,10 +78,6 @@ INSTALLED_APPS = [
     'django.contrib.sitemaps',
 ]
 
-if USE_CLOUDINARY:
-    # Must be listed before django.contrib.staticfiles per cloudinary_storage docs.
-    INSTALLED_APPS += ['cloudinary_storage']
-
 INSTALLED_APPS += [
     'django.contrib.staticfiles',
     'whitenoise.runserver_nostatic',
@@ -88,6 +86,12 @@ INSTALLED_APPS += [
 
 if USE_CLOUDINARY:
     INSTALLED_APPS += ['cloudinary']
+    # NOTE: deliberately NOT adding 'cloudinary_storage' to INSTALLED_APPS.
+    # That app only exists to override `collectstatic` for Cloudinary-hosted
+    # *static* files, and its override (v0.3.0) crashes on Django >= 5.1
+    # (it reads the removed settings.STATICFILES_STORAGE). We serve static
+    # files with WhiteNoise and only use Cloudinary for uploaded *media*,
+    # which works through STORAGES below without registering the app.
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
