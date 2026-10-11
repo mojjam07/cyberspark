@@ -14,10 +14,10 @@ sitemaps = {
 
 
 def robots_txt(request):
-    admin_path = f'/{settings.ADMIN_URL.strip("/")}/'
     lines = [
         "User-agent: *",
-        f"Disallow: {admin_path}",
+        "Disallow: /admin/",
+        "Disallow: /manage/",
         "Disallow: /account/",
         "Disallow: /dashboard/",
         "Disallow: /orders/",
@@ -31,7 +31,7 @@ def robots_txt(request):
 
 
 urlpatterns = [
-    path(f'{settings.ADMIN_URL}/', admin.site.urls),
+    path('admin/', admin.site.urls),
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
     path('robots.txt', robots_txt, name='robots_txt'),
     path('', include('api.urls')),

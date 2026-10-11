@@ -55,10 +55,6 @@ if render_host and render_host not in ALLOWED_HOSTS:
 if not DEBUG:
     ALLOWED_HOSTS.append(".onrender.com")
 
-ADMIN_URL = os.environ.get("ADMIN_URL", "admin").strip("/")
-ADMIN_ALLOWED_HOSTS = env_list("ADMIN_ALLOWED_HOSTS", default="")
-ADMIN_ALLOWED_IPS = env_list("ADMIN_ALLOWED_IPS", default="")
-
 CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS", "")
 if render_host:
     CSRF_TRUSTED_ORIGINS.append(f"https://{render_host}")
@@ -96,7 +92,6 @@ if USE_CLOUDINARY:
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'setup.middleware.AdminSecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -117,7 +112,6 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'api.context_processors.market_context',
             ],
         },
     },
@@ -186,9 +180,10 @@ USE_TZ = True
 # ------------------------------------------------------------------
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-
-# Don't add STATICFILES_DIRS for a non-existent /static/ directory.
-# Django's AppDirectoriesFinder will automatically discover api/static/ from INSTALLED_APPS.
+# No STATICFILES_DIRS needed: 'api' is a local app in INSTALLED_APPS, so its
+# api/static/ directory is already picked up automatically by Django's
+# AppDirectoriesFinder. Adding it again here would just cause duplicate-file
+# warnings during collectstatic.
 
 if DEBUG:
     STORAGES = {
@@ -196,17 +191,10 @@ if DEBUG:
         "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
     }
 else:
-    # Use WhiteNoise's base StaticFilesStorage (no compression).
-    # Compression via CompressedStaticFilesStorage can fail if referenced static files
-    # from installed apps (e.g., cloudinary) don't exist on disk after collection.
-    # WhiteNoise still serves with optimal caching headers without compression.
     STORAGES = {
         "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
-        "staticfiles": {"BACKEND": "whitenoise.storage.StaticFilesStorage"},
+        "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
     }
-
-# Legacy STATICFILES_STORAGE setting for backward compatibility with cloudinary_storage
-STATICFILES_STORAGE = STORAGES["staticfiles"]["BACKEND"]
 
 if USE_CLOUDINARY:
     # Persistent media storage — required in production if you rely on
@@ -298,6 +286,11 @@ else:
 # rate limiting under heavier traffic, point CACHES at Redis and this
 # starts working across all workers automatically.
 RATELIMIT_ENABLE = 'test' not in sys.argv and env_bool('RATELIMIT_ENABLE', default=True)
+
+# Test runs only: a fast (insecure) password hasher so the suite isn't
+# dominated by PBKDF2 hashing. Never active outside `manage.py test`.
+if 'test' in sys.argv:
+    PASSWORD_HASHERS = ['django.contrib.auth.hashers.MD5PasswordHasher']
 
 
 # ------------------------------------------------------------------

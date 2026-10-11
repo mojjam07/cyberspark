@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Users — Admin — CyberSpark{% endblock %}
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'css/manage.css' %}">
+{% endblock %}
+{% block content %}
+<div class="dashboard-layout">
+  {% include '_manage_sidebar.html' %}
+  <main class="dashboard-main">
+    <div class="mg-head"><div><h1>Users</h1><div class="sub">{{ page.paginator.count }} registered accounts</div></div></div>
+    <form method="get" class="mg-toolbar">
+      <input type="text" name="q" value="{{ query }}" class="form-input" placeholder="Search name or email…">
+      <button type="submit" class="btn-ghost mg-btn">Search</button>
+    </form>
+    <div class="mg-table-wrap">
+      <table class="mg-table">
+        <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Enrollments</th><th>Orders</th><th>Joined</th></tr></thead>
+        <tbody>
+          {% for u in page %}
+          <tr>
+            <td>{{ u.get_full_name|default:"—" }}</td>
+            <td>{{ u.email|default:u.username }}</td>
+            <td>{% if u.is_superuser %}Superuser{% elif u.is_staff %}Staff{% else %}Learner{% endif %}{% if not u.is_active %} <span class="mg-status mg-status-failed">Inactive</span>{% endif %}</td>
+            <td>{{ u.n_enrollments }}</td>
+            <td>{{ u.n_orders }}</td>
+            <td>{{ u.date_joined|date:"M d, Y" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="mg-empty">No users match.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% include '_manage_pagination.html' %}
+    <p class="mg-hint" style="margin-top:1rem;">To grant staff access or deactivate an account, use the <a href="/admin/auth/user/">Django admin</a>.</p>
+  </main>
+</div>
+{% endblock %}

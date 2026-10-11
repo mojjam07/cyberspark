@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Delete {{ cfg.label }} — Admin — CyberSpark{% endblock %}
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'css/manage.css' %}">
+{% endblock %}
+{% block content %}
+<div class="dashboard-layout">
+  {% include '_manage_sidebar.html' %}
+  <main class="dashboard-main">
+    <div class="mg-head"><div><h1>Delete {{ cfg.label|lower }}</h1></div></div>
+    <div class="mg-card mg-confirm">
+      <p>You're about to delete <strong>{{ obj }}</strong>. This can't be undone.</p>
+      {% for b in blockers %}<div class="mg-alert mg-alert-error">{{ b }}</div>{% endfor %}
+      <form method="post" class="mg-form-actions">
+        {% csrf_token %}
+        {% if not blockers %}<button type="submit" class="btn-submit mg-btn mg-btn-danger">Yes, delete</button>{% endif %}
+        <a href="{% url 'manage_list' resource %}" class="btn-ghost mg-btn">{% if blockers %}Back{% else %}Cancel{% endif %}</a>
+      </form>
+    </div>
+  </main>
+</div>
+{% endblock %}

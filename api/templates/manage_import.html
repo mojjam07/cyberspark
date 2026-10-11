@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Bulk Import — Admin — CyberSpark{% endblock %}
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'css/manage.css' %}">
+{% endblock %}
+{% block content %}
+<div class="dashboard-layout">
+  {% include '_manage_sidebar.html' %}
+  <main class="dashboard-main">
+    <div class="mg-head"><div><h1>Bulk Import</h1><div class="sub">Populate the catalog from a spreadsheet saved as CSV</div></div></div>
+
+    <div class="mg-two">
+      <div class="mg-card">
+        <h3>Courses</h3>
+        <p class="mg-muted">Categories are created automatically from the <code>category</code> column. A row whose <code>slug</code> matches an existing course updates it.</p>
+        <p class="mg-cols">
+          {% for c in course_columns %}<code {% if c in course_required %}class="req"{% endif %}>{{ c }}</code>{% endfor %}
+        </p>
+        <p class="mg-hint"><code class="req">highlighted</code> = required. Booleans: yes/no. <code>level</code>: beginner, intermediate or advanced.</p>
+        <p><a href="{% url 'manage_import_template' 'courses' %}">⬇ Download template</a></p>
+        <form method="post" enctype="multipart/form-data" class="mg-upload">
+          {% csrf_token %}<input type="hidden" name="kind" value="courses">
+          <input type="file" name="file" accept=".csv,text/csv" class="form-input" required>
+          <button type="submit" class="btn-submit mg-btn">Import courses</button>
+        </form>
+        {% if result and result.kind == 'courses' %}{% include '_manage_import_result.html' %}{% endif %}
+      </div>
+
+      <div class="mg-card">
+        <h3>Lessons</h3>
+        <p class="mg-muted">Each row is matched to a course by <code>course_slug</code>. A row with the same course and <code>order</code> as an existing lesson updates it.</p>
+        <p class="mg-cols">
+          {% for c in lesson_columns %}<code {% if c in lesson_required %}class="req"{% endif %}>{{ c }}</code>{% endfor %}
+        </p>
+        <p class="mg-hint">Import the course first, then its lessons.</p>
+        <p><a href="{% url 'manage_import_template' 'lessons' %}">⬇ Download template</a></p>
+        <form method="post" enctype="multipart/form-data" class="mg-upload">
+          {% csrf_token %}<input type="hidden" name="kind" value="lessons">
+          <input type="file" name="file" accept=".csv,text/csv" class="form-input" required>
+          <button type="submit" class="btn-submit mg-btn">Import lessons</button>
+        </form>
+        {% if result and result.kind == 'lessons' %}{% include '_manage_import_result.html' %}{% endif %}
+      </div>
+    </div>
+
+    <p class="mg-hint">Imports are all-or-nothing: if any row has a problem, nothing is saved and you'll see exactly which rows to fix. Max 500 rows / 2 MB per file.</p>
+  </main>
+</div>
+{% endblock %}

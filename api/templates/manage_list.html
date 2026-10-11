@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ cfg.plural }} — Admin — CyberSpark{% endblock %}
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'css/manage.css' %}">
+{% endblock %}
+{% block content %}
+<div class="dashboard-layout">
+  {% include '_manage_sidebar.html' %}
+  <main class="dashboard-main">
+    <div class="mg-head">
+      <div>
+        <h1>{{ cfg.plural }}</h1>
+        <div class="sub">
+          {{ page.paginator.count }} total{% if active_filter %} · lessons of <strong>{{ active_filter.title }}</strong> · <a href="{% url 'manage_list' resource %}">clear filter</a>{% endif %}
+        </div>
+      </div>
+      <div class="mg-head-actions">
+        {% if resource == 'courses' or resource == 'lessons' %}<a href="{% url 'manage_import' %}" class="btn-ghost mg-btn">Import CSV</a>{% endif %}
+        <a href="{{ add_url }}" class="btn-submit mg-btn">+ Add {{ cfg.label }}</a>
+      </div>
+    </div>
+
+    <form method="get" class="mg-toolbar">
+      <input type="text" name="q" value="{{ query }}" class="form-input" placeholder="Search {{ cfg.plural|lower }}…">
+      {% if active_filter %}<input type="hidden" name="course" value="{{ active_filter.pk }}">{% endif %}
+      <button type="submit" class="btn-ghost mg-btn">Search</button>
+    </form>
+
+    <div class="mg-table-wrap">
+      <table class="mg-table">
+        <thead>
+          <tr>{% for label in labels %}<th>{{ label }}</th>{% endfor %}<th class="mg-actions-col">Actions</th></tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+          <tr>
+            {% for cell in row.cells %}<td>{{ cell }}</td>{% endfor %}
+            <td class="mg-actions">
+              {% for label, url in row.links %}<a href="{{ url }}">{{ label }}</a>{% endfor %}
+              <a href="{% url 'manage_edit' resource row.pk %}">Edit</a>
+              <a href="{% url 'manage_delete' resource row.pk %}" class="mg-danger">Delete</a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="{{ labels|length|add:1 }}" class="mg-empty">{{ cfg.empty }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% include '_manage_pagination.html' %}
+  </main>
+</div>
+{% endblock %}

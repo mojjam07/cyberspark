@@ -1,0 +1,63 @@
+<aside class="sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-label">Admin</div>
+    <a href="{% url 'manage_home' %}" class="sidebar-item {% if active_section == 'home' %}active{% endif %}">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+      Overview
+    </a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Content</div>
+    <a href="{% url 'manage_list' 'courses' %}" class="sidebar-item {% if active_section == 'courses' %}active{% endif %}">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      Courses
+    </a>
+    <a href="{% url 'manage_list' 'lessons' %}" class="sidebar-item {% if active_section == 'lessons' %}active{% endif %}">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg>
+      Lessons
+    </a>
+    <a href="{% url 'manage_list' 'categories' %}" class="sidebar-item {% if active_section == 'categories' %}active{% endif %}">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+      Categories
+    </a>
+    <a href="{% url 'manage_list' 'instructors' %}" class="sidebar-item {% if active_section == 'instructors' %}active{% endif %}">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Instructors
+    </a>
+    <a href="{% url 'manage_list' 'coupons' %}" class="sidebar-item {% if active_section == 'coupons' %}active{% endif %}">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
+      Coupons
+    </a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Sales &amp; People</div>
+    <a href="{% url 'manage_orders' %}" class="sidebar-item {% if active_section == 'orders' %}active{% endif %}">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg>
+      Orders
+      {% if pending_count %}<span class="mg-badge">{{ pending_count }}</span>{% endif %}
+    </a>
+    <a href="{% url 'manage_enrollments' %}" class="sidebar-item {% if active_section == 'enrollments' %}active{% endif %}">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+      Enrollments
+    </a>
+    <a href="{% url 'manage_users' %}" class="sidebar-item {% if active_section == 'users' %}active{% endif %}">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Users
+    </a>
+  </div>
+  <div class="sidebar-section" style="border-bottom: none;">
+    <div class="sidebar-label">Tools</div>
+    <a href="{% url 'manage_import' %}" class="sidebar-item {% if active_section == 'import' %}active{% endif %}">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Bulk Import
+    </a>
+    <a href="/admin/" class="sidebar-item">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4"/></svg>
+      Django Admin
+    </a>
+    <a href="{% url 'dashboard' %}" class="sidebar-item">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Learner view
+    </a>
+  </div>
+</aside>

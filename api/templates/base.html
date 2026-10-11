@@ -1,12 +1,9 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{% block title %}CyberSpark — Practical Tech Courses{% endblock %}</title>
-
-<link rel="icon" type="image/png" href="{% static 'logo.png' %}">
 
 {% block meta %}
 <meta name="description" content="{% block meta_description %}Practical web development, data, and DevOps courses for the Nigerian market. Lifetime access, pay by card or bank transfer.{% endblock %}">
@@ -112,6 +109,7 @@
           <a href="{% url 'my_orders' %}" class="nav-link">My Orders</a>
           <a href="{% url 'my_wishlist' %}" class="nav-link">Wishlist</a>
           <a href="{% url 'account_settings' %}" class="nav-link">Account Settings</a>
+          {% if user.is_staff %}<a href="{% url 'manage_home' %}" class="nav-link">Admin Dashboard</a>{% endif %}
           <a href="{% url 'logout' %}" class="nav-link nav-signout">Sign Out</a>
         </div>
       </div>
@@ -136,7 +134,7 @@
         <a href="{% url 'home' %}" class="footer-brand-name">Cyber<span>Spark</span></a>
       </div>
     </div>
-    <p>Practical tech courses for the {{ market_name|default:'Nigerian' }} market — built by CyberSpark IT Solutions.</p>
+    <p>Practical tech courses for the Nigerian market — built by CyberSpark IT Solutions.</p>
   </div>
   <div class="footer-links">
     <div>

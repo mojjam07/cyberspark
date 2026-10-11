@@ -60,6 +60,19 @@ Enrolled users see them at `/courses/<slug>/learn/` and can tick lessons
 off; `Enrollment.progress` recomputes automatically and marks the course
 complete at 100%.
 
+## Staff admin dashboard
+`/manage/` (staff only) is a branded back-office for populating and running
+the platform: overview stats, CRUD for courses/lessons/categories/instructors/
+coupons, bank-transfer review with a staff-only proof viewer, manual
+enrollment, a users list, and **bulk CSV import** for courses and lessons.
+See DEPLOYMENT.md section 9.
+
+## Supabase
+`supabase/fix_supabase.sql` repairs a database that still has tables/migration
+history from an older version of the project (the usual cause of
+`relation "api_order" does not exist`) and locks the public `anon`/
+`authenticated` API roles out of your tables. See DEPLOYMENT.md section 2b.
+
 ## Reviews, wishlist, instructors, coupons
 - **Reviews**: enrolled users can rate/review a course from its detail
   page; `Course.rating`/`rating_count` recompute automatically whenever a
@@ -123,6 +136,8 @@ api/
   emails.py       transactional email helpers (welcome, enrollment, payment,
                    contact form)
   sitemaps.py     sitemap.xml definitions (courses + static pages)
+  manage_views.py staff admin dashboard views (/manage/)
+  manage_forms.py forms used by the staff admin dashboard
   admin.py        Django admin, incl. bank-transfer approval actions
   templates/      server-rendered HTML, each page with its own CSS in
                    static/css/
@@ -131,5 +146,6 @@ setup/
   settings.py     single environment-driven settings module (Supabase-aware —
                    see DB_CONN_MAX_AGE; rate-limit config — see RATELIMIT_ENABLE)
   urls.py         includes sitemap.xml and robots.txt
+supabase/
+  fix_supabase.sql  stale-schema repair + public-API lockdown for Supabase
 ```
-# cyberspark

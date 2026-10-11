@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Enrollments — Admin — CyberSpark{% endblock %}
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'css/manage.css' %}">
+{% endblock %}
+{% block content %}
+<div class="dashboard-layout">
+  {% include '_manage_sidebar.html' %}
+  <main class="dashboard-main">
+    <div class="mg-head"><div><h1>Enrollments</h1><div class="sub">Grant access manually, or see who is enrolled where</div></div></div>
+
+    <form method="post" class="mg-card mg-inline-form">
+      {% csrf_token %}
+      <h3>Enroll a learner</h3>
+      <div class="mg-inline-fields">
+        <div class="form-group">{{ form.email }}{% for e in form.email.errors %}<div class="mg-error">{{ e }}</div>{% endfor %}</div>
+        <div class="form-group">{{ form.course }}{% for e in form.course.errors %}<div class="mg-error">{{ e }}</div>{% endfor %}</div>
+        <button type="submit" class="btn-submit mg-btn">Enroll</button>
+      </div>
+      <div class="mg-hint">Useful for scholarships, comped access, or fixing a payment problem. The learner must already have an account.</div>
+    </form>
+
+    <form method="get" class="mg-toolbar">
+      <input type="text" name="q" value="{{ query }}" class="form-input" placeholder="Search learner or course…">
+      <button type="submit" class="btn-ghost mg-btn">Search</button>
+    </form>
+
+    <div class="mg-table-wrap">
+      <table class="mg-table">
+        <thead><tr><th>Learner</th><th>Course</th><th>Progress</th><th>Enrolled</th><th class="mg-actions-col">Actions</th></tr></thead>
+        <tbody>
+          {% for e in page %}
+          <tr>
+            <td>{{ e.user.email|default:e.user.username }}</td>
+            <td>{{ e.course.title }}</td>
+            <td>{{ e.progress }}%{% if e.completed_at %} <span class="mg-status mg-status-paid">Done</span>{% endif %}</td>
+            <td>{{ e.enrolled_at|date:"M d, Y" }}</td>
+            <td class="mg-actions">
+              <form method="post" action="{% url 'manage_enrollment_remove' e.pk %}" onsubmit="return confirm('Remove this enrollment? Their progress will be lost.');">
+                {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button type="submit" class="mg-link-btn mg-danger">Remove</button>
+              </form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="mg-empty">No enrollments yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% include '_manage_pagination.html' %}
+  </main>
+</div>
+{% endblock %}

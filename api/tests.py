@@ -543,3 +543,329 @@ class DashboardSubPagesTests(TestCase):
             resp = self.client.get(reverse(name))
             self.assertContains(resp, 'sidebar-item', msg_prefix=f"{name} missing sidebar")
             self.assertNotContains(resp, 'href="#"', msg_prefix=f"{name} still has a dead link")
+
+
+import shutil
+import tempfile
+
+from django.test import override_settings
+
+
+class ManageDashboardTests(TestCase):
+    def setUp(self):
+        self.staff = User.objects.create_user(username='staff@example.com', email='staff@example.com', password='pass12345', is_staff=True)
+        self.learner = User.objects.create_user(username='learner@example.com', email='learner@example.com', password='pass12345')
+        self.category = Category.objects.create(name='Python', slug='python')
+        self.course = Course.objects.create(
+            title='Paid Course', slug='paid-course', description='...', instructor='A',
+            price=Decimal('20000.00'), duration_hours=2, level='beginner', category=self.category,
+        )
+        self.client.login(username='staff@example.com', password='pass12345')
+
+    def _csv(self, text, name='data.csv'):
+        return SimpleUploadedFile(name, text.encode('utf-8'), content_type='text/csv')
+
+    # --- access control ---
+    def test_anonymous_redirected_to_login(self):
+        self.client.logout()
+        resp = self.client.get(reverse('manage_home'))
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn('/login/', resp.url)
+
+    def test_non_staff_cannot_access_any_manage_page(self):
+        self.client.login(username='learner@example.com', password='pass12345')
+        for url in [reverse('manage_home'), reverse('manage_list', args=['courses']), reverse('manage_orders'),
+                    reverse('manage_users'), reverse('manage_import'), reverse('manage_create', args=['courses'])]:
+            resp = self.client.get(url)
+            self.assertRedirects(resp, reverse('dashboard'), fetch_redirect_response=False, msg_prefix=url)
+
+    def test_non_staff_cannot_post_actions(self):
+        order = Order.objects.create(user=self.learner, course=self.course, amount=1, method=Order.Method.BANK_TRANSFER,
+                                     status=Order.Status.AWAITING_REVIEW)
+        self.client.login(username='learner@example.com', password='pass12345')
+        self.client.post(reverse('manage_order_action', args=[order.pk]), {'action': 'approve'})
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.Status.AWAITING_REVIEW)
+        self.assertFalse(Enrollment.objects.filter(user=self.learner).exists())
+
+    def test_unknown_resource_404(self):
+        self.assertEqual(self.client.get('/manage/nonsense/').status_code, 404)
+
+    def test_staff_sees_admin_link_learner_does_not(self):
+        self.assertContains(self.client.get(reverse('dashboard')), reverse('manage_home'))
+        self.client.login(username='learner@example.com', password='pass12345')
+        self.assertNotContains(self.client.get(reverse('dashboard')), '/manage/')
+
+    # --- pages render, no dead links ---
+    def test_every_manage_page_loads_without_dead_links(self):
+        urls = [reverse('manage_home'), reverse('manage_orders'), reverse('manage_enrollments'),
+                reverse('manage_users'), reverse('manage_import')]
+        for r in ['courses', 'categories', 'instructors', 'lessons', 'coupons']:
+            urls += [reverse('manage_list', args=[r]), reverse('manage_create', args=[r])]
+        urls += [reverse('manage_edit', args=['courses', self.course.pk]), reverse('manage_delete', args=['courses', self.course.pk])]
+        for url in urls:
+            resp = self.client.get(url)
+            self.assertEqual(resp.status_code, 200, url)
+            self.assertNotContains(resp, 'href="#"', msg_prefix=url)
+            self.assertContains(resp, 'sidebar-item', msg_prefix=url)
+
+    def test_home_shows_stats_and_pending_badge(self):
+        Order.objects.create(user=self.learner, course=self.course, amount=1, method=Order.Method.BANK_TRANSFER,
+                             status=Order.Status.AWAITING_REVIEW)
+        resp = self.client.get(reverse('manage_home'))
+        self.assertContains(resp, 'Awaiting review')
+        self.assertContains(resp, 'mg-badge')
+
+    def test_robots_blocks_manage(self):
+        self.assertContains(self.client.get('/robots.txt'), 'Disallow: /manage/')
+
+    # --- CRUD ---
+    def test_create_course_autogenerates_unique_slug(self):
+        data = {'title': 'Brand New', 'category': self.category.pk, 'instructor': 'Z', 'description': 'd',
+                'price': '15000', 'duration_hours': 3, 'level': 'beginner', 'is_published': 'on'}
+        resp = self.client.post(reverse('manage_create', args=['courses']), data)
+        self.assertRedirects(resp, reverse('manage_list', args=['courses']))
+        self.assertTrue(Course.objects.filter(slug='brand-new').exists())
+        self.client.post(reverse('manage_create', args=['courses']), data)
+        self.assertTrue(Course.objects.filter(slug='brand-new-2').exists())
+
+    def test_paid_course_requires_price_free_course_does_not(self):
+        base = {'title': 'T', 'category': self.category.pk, 'instructor': 'Z', 'description': 'd',
+                'duration_hours': 3, 'level': 'beginner'}
+        resp = self.client.post(reverse('manage_create', args=['courses']), {**base, 'price': '0'})
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'greater than 0')
+        self.assertFalse(Course.objects.filter(title='T').exists())
+        resp = self.client.post(reverse('manage_create', args=['courses']), {**base, 'is_free': 'on'})
+        self.assertRedirects(resp, reverse('manage_list', args=['courses']))
+        self.assertEqual(Course.objects.get(title='T').price, 0)
+
+    def test_edit_course(self):
+        data = {'title': 'Renamed', 'slug': 'paid-course', 'category': self.category.pk, 'instructor': 'A',
+                'description': 'd', 'price': '25000', 'duration_hours': 2, 'level': 'advanced', 'is_published': 'on'}
+        self.client.post(reverse('manage_edit', args=['courses', self.course.pk]), data)
+        self.course.refresh_from_db()
+        self.assertEqual((self.course.title, self.course.price, self.course.level), ('Renamed', Decimal('25000.00'), 'advanced'))
+
+    def test_manual_slug_conflict_rejected(self):
+        resp = self.client.post(reverse('manage_create', args=['categories']), {'name': 'Other', 'slug': 'python'})
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'already in use')
+
+    def test_category_slug_autogenerated(self):
+        self.client.post(reverse('manage_create', args=['categories']), {'name': 'Data Science'})
+        self.assertTrue(Category.objects.filter(slug='data-science').exists())
+
+    def test_instructor_and_lesson_creation(self):
+        self.client.post(reverse('manage_create', args=['instructors']), {'name': 'Ada Obi', 'title': 'Engineer'})
+        self.assertTrue(Instructor.objects.filter(slug='ada-obi').exists())
+        resp = self.client.post(reverse('manage_create', args=['lessons']), {
+            'course': self.course.pk, 'order': 1, 'title': 'Intro', 'duration_minutes': 10})
+        self.assertRedirects(resp, f"{reverse('manage_list', args=['lessons'])}?course={self.course.pk}")
+        self.assertEqual(self.course.lessons.count(), 1)
+
+    def test_lessons_list_filters_by_course(self):
+        other = Course.objects.create(title='Other', slug='other', description='.', instructor='B', price=1,
+                                      duration_hours=1, level='beginner', category=self.category)
+        Lesson.objects.create(course=self.course, title='Only Mine', order=1)
+        Lesson.objects.create(course=other, title='Not Mine', order=1)
+        resp = self.client.get(f"{reverse('manage_list', args=['lessons'])}?course={self.course.pk}")
+        self.assertContains(resp, 'Only Mine')
+        self.assertNotContains(resp, 'Not Mine')
+
+    def test_coupon_code_normalised_and_validated(self):
+        url = reverse('manage_create', args=['coupons'])
+        self.client.post(url, {'code': ' save10 ', 'discount_percent': 10, 'active': 'on'})
+        self.assertTrue(Coupon.objects.filter(code='SAVE10').exists())
+        self.assertContains(self.client.post(url, {'code': 'SAVE10', 'discount_percent': 5}), 'already exists')
+        self.assertContains(self.client.post(url, {'code': 'BIG', 'discount_percent': 150}), 'between 1 and 100')
+        self.assertContains(self.client.post(url, {'code': 'bad code!', 'discount_percent': 5}), 'letters, numbers')
+
+    def test_search_filters_list(self):
+        Course.objects.create(title='Zebra Skills', slug='zebra', description='.', instructor='B', price=1,
+                              duration_hours=1, level='beginner', category=self.category)
+        resp = self.client.get(reverse('manage_list', args=['courses']) + '?q=zebra')
+        self.assertContains(resp, 'Zebra Skills')
+        self.assertNotContains(resp, 'Paid Course')
+
+    # --- delete protection ---
+    def test_course_with_enrollments_cannot_be_deleted(self):
+        Enrollment.objects.create(user=self.learner, course=self.course)
+        resp = self.client.get(reverse('manage_delete', args=['courses', self.course.pk]))
+        self.assertContains(resp, 'enrollment')
+        self.client.post(reverse('manage_delete', args=['courses', self.course.pk]))
+        self.assertTrue(Course.objects.filter(pk=self.course.pk).exists())
+
+    def test_unused_course_can_be_deleted(self):
+        self.client.post(reverse('manage_delete', args=['courses', self.course.pk]))
+        self.assertFalse(Course.objects.filter(pk=self.course.pk).exists())
+
+    def test_category_with_courses_cannot_be_deleted(self):
+        self.client.post(reverse('manage_delete', args=['categories', self.category.pk]))
+        self.assertTrue(Category.objects.filter(pk=self.category.pk).exists())
+
+    def test_delete_requires_post(self):
+        self.client.get(reverse('manage_delete', args=['courses', self.course.pk]))
+        self.assertTrue(Course.objects.filter(pk=self.course.pk).exists())
+
+    # --- orders ---
+    def _bank_order(self, **kw):
+        return Order.objects.create(user=self.learner, course=self.course, amount=Decimal('20000'),
+                                    method=Order.Method.BANK_TRANSFER, status=Order.Status.AWAITING_REVIEW, **kw)
+
+    def test_approve_bank_transfer_enrolls_learner(self):
+        order = self._bank_order()
+        resp = self.client.post(reverse('manage_order_action', args=[order.pk]), {'action': 'approve', 'next': reverse('manage_home')})
+        self.assertRedirects(resp, reverse('manage_home'))
+        order.refresh_from_db()
+        self.assertEqual((order.status, order.reviewed_by), (Order.Status.PAID, self.staff))
+        self.assertTrue(Enrollment.objects.filter(user=self.learner, course=self.course).exists())
+
+    def test_reject_then_reapprove(self):
+        order = self._bank_order()
+        self.client.post(reverse('manage_order_action', args=[order.pk]), {'action': 'reject'})
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.Status.FAILED)
+        self.client.post(reverse('manage_order_action', args=[order.pk]), {'action': 'approve'})
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.Status.PAID)
+
+    def test_paid_order_cannot_be_rejected(self):
+        order = self._bank_order()
+        order.mark_paid()
+        self.client.post(reverse('manage_order_action', args=[order.pk]), {'action': 'reject'})
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.Status.PAID)
+
+    def test_paystack_order_cannot_be_hand_approved(self):
+        order = Order.objects.create(user=self.learner, course=self.course, amount=1, method=Order.Method.PAYSTACK)
+        self.client.post(reverse('manage_order_action', args=[order.pk]), {'action': 'approve'})
+        order.refresh_from_db()
+        self.assertNotEqual(order.status, Order.Status.PAID)
+        self.assertFalse(Enrollment.objects.filter(user=self.learner).exists())
+
+    def test_order_action_ignores_offsite_next_url(self):
+        order = self._bank_order()
+        resp = self.client.post(reverse('manage_order_action', args=[order.pk]), {'action': 'reject', 'next': 'https://evil.example.com/'})
+        self.assertRedirects(resp, reverse('manage_orders'), fetch_redirect_response=False)
+
+    def test_orders_filter_by_status(self):
+        self._bank_order()
+        done = Order.objects.create(user=self.learner, course=self.course, amount=5, method=Order.Method.PAYSTACK, status=Order.Status.PAID)
+        resp = self.client.get(reverse('manage_orders') + '?status=paid')
+        self.assertContains(resp, str(done.reference)[:11])
+        self.assertNotContains(resp, 'Approve')
+
+    def test_proof_viewable_by_staff_only(self):
+        tmp = tempfile.mkdtemp()
+        try:
+            with override_settings(MEDIA_ROOT=tmp):
+                order = self._bank_order()
+                order.proof_of_payment.save('proof.png', SimpleUploadedFile('proof.png', b'PNGDATA', content_type='image/png'))
+                resp = self.client.get(reverse('manage_order_proof', args=[order.pk]))
+                self.assertEqual(resp.status_code, 200)
+                self.assertEqual(b''.join(resp.streaming_content), b'PNGDATA')
+                self.client.login(username='learner@example.com', password='pass12345')
+                self.assertEqual(self.client.get(reverse('manage_order_proof', args=[order.pk])).status_code, 302)
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_proof_404_when_none_uploaded(self):
+        order = self._bank_order()
+        self.assertEqual(self.client.get(reverse('manage_order_proof', args=[order.pk])).status_code, 404)
+
+    # --- enrollments / users ---
+    def test_manual_enroll_by_email(self):
+        resp = self.client.post(reverse('manage_enrollments'), {'email': 'LEARNER@example.com', 'course': self.course.pk})
+        self.assertRedirects(resp, reverse('manage_enrollments'))
+        self.assertTrue(Enrollment.objects.filter(user=self.learner, course=self.course).exists())
+        self.client.post(reverse('manage_enrollments'), {'email': 'learner@example.com', 'course': self.course.pk})
+        self.assertEqual(Enrollment.objects.filter(user=self.learner, course=self.course).count(), 1)
+
+    def test_manual_enroll_unknown_email_errors(self):
+        resp = self.client.post(reverse('manage_enrollments'), {'email': 'ghost@example.com', 'course': self.course.pk})
+        self.assertContains(resp, 'No account with that email')
+
+    def test_remove_enrollment(self):
+        enr = Enrollment.objects.create(user=self.learner, course=self.course)
+        self.client.post(reverse('manage_enrollment_remove', args=[enr.pk]))
+        self.assertFalse(Enrollment.objects.filter(pk=enr.pk).exists())
+
+    def test_users_page_lists_and_searches(self):
+        resp = self.client.get(reverse('manage_users') + '?q=learner@')
+        self.assertContains(resp, 'learner@example.com')
+        self.assertNotContains(resp, 'staff@example.com')
+
+    # --- CSV import ---
+    def test_import_courses_creates_category_and_course(self):
+        csv_text = ("title,slug,category,instructor,description,price,duration_hours,level,is_free,is_featured,is_published,thumbnail\n"
+                    "Intro to SQL,,Data Science,Ada Obi,Learn SQL.,35000,8,beginner,no,yes,yes,\n"
+                    "Free Taster,,Data Science,Ada Obi,Try it.,,1,beginner,yes,no,,\n")
+        resp = self.client.post(reverse('manage_import'), {'kind': 'courses', 'file': self._csv(csv_text)})
+        self.assertContains(resp, '2 created')
+        sql = Course.objects.get(slug='intro-to-sql')
+        self.assertEqual((sql.category.slug, sql.price, sql.is_featured, sql.is_published), ('data-science', Decimal('35000'), True, True))
+        self.assertTrue(Course.objects.get(slug='free-taster').is_free)
+
+    def test_import_is_all_or_nothing(self):
+        csv_text = ("title,category,instructor,description,duration_hours,price\n"
+                    "Good One,Brand New Cat,Ada,desc,5,1000\n"
+                    ",Brand New Cat,Ada,desc,5,1000\n"
+                    "Bad Price,Brand New Cat,Ada,desc,5,0\n")
+        resp = self.client.post(reverse('manage_import'), {'kind': 'courses', 'file': self._csv(csv_text)})
+        self.assertContains(resp, 'Nothing was imported')
+        self.assertContains(resp, 'Row 3')
+        self.assertContains(resp, 'Row 4')
+        self.assertFalse(Course.objects.filter(title='Good One').exists())
+        self.assertFalse(Category.objects.filter(slug='brand-new-cat').exists())
+
+    def test_import_updates_existing_by_slug(self):
+        csv_text = ("title,slug,category,instructor,description,price,duration_hours\n"
+                    "Paid Course v2,paid-course,Python,A,new desc,30000,4\n")
+        resp = self.client.post(reverse('manage_import'), {'kind': 'courses', 'file': self._csv(csv_text)})
+        self.assertContains(resp, '1 updated')
+        self.course.refresh_from_db()
+        self.assertEqual((self.course.title, self.course.price), ('Paid Course v2', Decimal('30000.00')))
+
+    def test_import_lessons_and_upsert(self):
+        csv_text = ("course_slug,order,title,duration_minutes\n"
+                    "paid-course,1,First,5\npaid-course,2,Second,7\n")
+        self.client.post(reverse('manage_import'), {'kind': 'lessons', 'file': self._csv(csv_text)})
+        self.assertEqual(self.course.lessons.count(), 2)
+        again = "course_slug,order,title,duration_minutes\npaid-course,1,First (edited),9\n"
+        resp = self.client.post(reverse('manage_import'), {'kind': 'lessons', 'file': self._csv(again)})
+        self.assertContains(resp, '1 updated')
+        self.assertEqual(self.course.lessons.get(order=1).title, 'First (edited)')
+        self.assertEqual(self.course.lessons.count(), 2)
+
+    def test_import_lessons_unknown_course_rejected(self):
+        resp = self.client.post(reverse('manage_import'), {'kind': 'lessons', 'file': self._csv("course_slug,order,title\nnope,1,X\n")})
+        self.assertContains(resp, 'no course with slug')
+
+    def test_import_rejects_bad_files(self):
+        for upload, expect in [
+            (self._csv("title,category\nX,Y\n"), 'Missing required column'),
+            (self._csv("a,b\n"), 'Missing required column'),
+            (self._csv("", 'empty.csv'), 'empty'),
+            (SimpleUploadedFile('data.txt', b'title', content_type='text/plain'), 'csv'),
+        ]:
+            resp = self.client.post(reverse('manage_import'), {'kind': 'courses', 'file': upload})
+            self.assertContains(resp, expect)
+        self.assertEqual(Course.objects.count(), 1)
+
+    def test_import_handles_excel_bom(self):
+        text = "\ufefftitle,category,instructor,description,duration_hours,price\nBOM Course,Python,A,d,2,500\n"
+        resp = self.client.post(reverse('manage_import'), {'kind': 'courses', 'file': self._csv(text)})
+        self.assertContains(resp, '1 created')
+
+    def test_template_downloads(self):
+        for kind, first in [('courses', 'title,'), ('lessons', 'course_slug,')]:
+            resp = self.client.get(reverse('manage_import_template', args=[kind]))
+            self.assertEqual(resp['Content-Type'], 'text/csv')
+            self.assertTrue(resp.content.decode().startswith(first))
+        self.assertEqual(self.client.get('/manage/import/template/bogus/').status_code, 404)
+
+    def test_downloaded_course_template_round_trips(self):
+        text = self.client.get(reverse('manage_import_template', args=['courses'])).content.decode()
+        resp = self.client.post(reverse('manage_import'), {'kind': 'courses', 'file': self._csv(text)})
+        self.assertContains(resp, '1 created')

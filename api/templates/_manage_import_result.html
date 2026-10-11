@@ -1,0 +1,9 @@
+{% if result.errors %}
+<div class="mg-alert mg-alert-error">
+  <strong>Nothing was imported.</strong> Fix the following and upload again:
+  <ul>{% for e in result.errors|slice:":50" %}<li>{{ e }}</li>{% endfor %}</ul>
+  {% if result.errors|length > 50 %}<div>…and {{ result.errors|length|add:"-50" }} more.</div>{% endif %}
+</div>
+{% else %}
+<div class="mg-alert mg-alert-ok"><strong>Import complete:</strong> {{ result.created }} created, {{ result.updated }} updated.</div>
+{% endif %}

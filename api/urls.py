@@ -2,6 +2,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import path
 from django_ratelimit.decorators import ratelimit
 
+from . import manage_views as mv
 from . import views
 
 urlpatterns = [
@@ -55,6 +56,21 @@ urlpatterns = [
 
     path('payments/paystack/callback/', views.paystack_callback, name='paystack_callback'),
     path('payments/paystack/webhook/', views.paystack_webhook, name='paystack_webhook'),
+
+    # --- Staff admin dashboard ---
+    path('manage/', mv.manage_home, name='manage_home'),
+    path('manage/orders/', mv.manage_orders, name='manage_orders'),
+    path('manage/orders/<int:pk>/action/', mv.manage_order_action, name='manage_order_action'),
+    path('manage/orders/<int:pk>/proof/', mv.manage_order_proof, name='manage_order_proof'),
+    path('manage/enrollments/', mv.manage_enrollments, name='manage_enrollments'),
+    path('manage/enrollments/<int:pk>/remove/', mv.manage_enrollment_remove, name='manage_enrollment_remove'),
+    path('manage/users/', mv.manage_users, name='manage_users'),
+    path('manage/import/', mv.manage_import, name='manage_import'),
+    path('manage/import/template/<str:kind>/', mv.manage_import_template, name='manage_import_template'),
+    path('manage/<str:resource>/', mv.manage_list, name='manage_list'),
+    path('manage/<str:resource>/new/', mv.manage_form, name='manage_create'),
+    path('manage/<str:resource>/<int:pk>/edit/', mv.manage_form, name='manage_edit'),
+    path('manage/<str:resource>/<int:pk>/delete/', mv.manage_delete, name='manage_delete'),
 
     path('healthz/', views.health_check, name='health_check'),
 

@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ view_name }} — Admin — CyberSpark{% endblock %}
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'css/manage.css' %}">
+{% endblock %}
+{% block content %}
+<div class="dashboard-layout">
+  {% include '_manage_sidebar.html' %}
+  <main class="dashboard-main">
+    <div class="mg-head">
+      <div>
+        <h1>{{ view_name }}</h1>
+        <div class="sub"><a href="{% url 'manage_list' resource %}">← Back to {{ cfg.plural|lower }}</a></div>
+      </div>
+    </div>
+
+    <form method="post" class="mg-card mg-form" novalidate>
+      {% csrf_token %}
+      {% if form.non_field_errors %}<div class="mg-alert mg-alert-error">{{ form.non_field_errors }}</div>{% endif %}
+      <div class="mg-form-grid">
+        {% for field in form %}
+        <div class="form-group mg-field {% if field.widget_type == 'textarea' %}mg-wide{% endif %}">
+          {% if field.widget_type == 'checkbox' %}
+            <label class="mg-check">{{ field }} <span>{{ field.label }}</span></label>
+          {% else %}
+            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+            {{ field }}
+          {% endif %}
+          {% if field.help_text %}<div class="mg-hint">{{ field.help_text }}</div>{% endif %}
+          {% for e in field.errors %}<div class="mg-error">{{ e }}</div>{% endfor %}
+        </div>
+        {% endfor %}
+      </div>
+      <div class="mg-form-actions">
+        <button type="submit" class="btn-submit mg-btn">Save {{ cfg.label }}</button>
+        <a href="{% url 'manage_list' resource %}" class="btn-ghost mg-btn">Cancel</a>
+      </div>
+    </form>
+  </main>
+</div>
+{% endblock %}

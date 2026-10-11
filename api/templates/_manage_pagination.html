@@ -1,0 +1,7 @@
+{% if page.paginator.num_pages > 1 %}
+<div class="mg-pagination">
+  {% if page.has_previous %}<a href="?page={{ page.previous_page_number }}{{ extra_qs }}">← Prev</a>{% else %}<span class="mg-pg-off">← Prev</span>{% endif %}
+  <span>Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+  {% if page.has_next %}<a href="?page={{ page.next_page_number }}{{ extra_qs }}">Next →</a>{% else %}<span class="mg-pg-off">Next →</span>{% endif %}
+</div>
+{% endif %}

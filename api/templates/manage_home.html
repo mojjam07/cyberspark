@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Admin Dashboard — CyberSpark{% endblock %}
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'css/manage.css' %}">
+{% endblock %}
+{% block content %}
+<div class="dashboard-layout">
+  {% include '_manage_sidebar.html' %}
+  <main class="dashboard-main">
+    <div class="mg-head">
+      <div><h1>Admin Dashboard</h1><div class="sub">Run the platform: add content, review payments, manage learners</div></div>
+      <div class="mg-head-actions">
+        <a href="{% url 'manage_create' 'courses' %}" class="btn-submit mg-btn">+ Add Course</a>
+      </div>
+    </div>
+
+    {% if needs_setup %}
+    <div class="mg-card mg-setup">
+      <h3>Get started</h3>
+      <ol>
+        <li><a href="{% url 'manage_create' 'categories' %}">Create a category</a> (e.g. Web Development)</li>
+        <li><a href="{% url 'manage_create' 'courses' %}">Add your first course</a> — or <a href="{% url 'manage_import' %}">bulk-import a CSV</a></li>
+        <li>Add lessons so learners can track progress and earn certificates</li>
+        <li><a href="{% url 'manage_create' 'coupons' %}">Create a launch coupon</a> (optional)</li>
+      </ol>
+    </div>
+    {% endif %}
+
+    <div class="mg-stats">
+      {% for s in stats %}
+      <div class="mg-stat"><div class="val">{{ s.value }}</div><div class="lbl">{{ s.label }}</div><div class="desc">{{ s.desc }}</div></div>
+      {% endfor %}
+    </div>
+
+    <div class="mg-two">
+      <div class="mg-card">
+        <div class="mg-card-head"><h3>Needs your attention</h3><a href="{% url 'manage_orders' %}?status=awaiting_review">View all</a></div>
+        {% for order in awaiting %}
+        <div class="mg-list-row">
+          <div>
+            <div class="mg-strong">{{ order.course.title }}</div>
+            <div class="mg-sub">{{ order.user.email|default:order.user.username }} · NGN {{ order.amount|floatformat:0 }}</div>
+          </div>
+          <div class="mg-row-actions">
+            {% if order.proof_of_payment %}<a href="{% url 'manage_order_proof' order.pk %}" target="_blank" rel="noopener">Proof</a>{% endif %}
+            <form method="post" action="{% url 'manage_order_action' order.pk %}">{% csrf_token %}
+              <input type="hidden" name="next" value="{% url 'manage_home' %}">
+              <button type="submit" name="action" value="approve" class="mg-link-btn">Approve</button>
+              <button type="submit" name="action" value="reject" class="mg-link-btn mg-danger">Reject</button>
+            </form>
+          </div>
+        </div>
+        {% empty %}
+        <p class="mg-muted">Nothing waiting — all bank transfers are reviewed. 🎉</p>
+        {% endfor %}
+      </div>
+
+      <div class="mg-card">
+        <div class="mg-card-head"><h3>Quick actions</h3></div>
+        <div class="mg-quick">
+          <a href="{% url 'manage_create' 'courses' %}">Add a course</a>
+          <a href="{% url 'manage_create' 'lessons' %}">Add a lesson</a>
+          <a href="{% url 'manage_import' %}">Bulk import CSV</a>
+          <a href="{% url 'manage_create' 'coupons' %}">Create a coupon</a>
+          <a href="{% url 'manage_enrollments' %}">Enroll a learner</a>
+          <a href="{% url 'manage_create' 'instructors' %}">Add an instructor</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mg-three">
+      <div class="mg-card">
+        <div class="mg-card-head"><h3>Recent orders</h3><a href="{% url 'manage_orders' %}">All</a></div>
+        {% for o in recent_orders %}
+        <div class="mg-list-row">
+          <div><div class="mg-strong">{{ o.course.title }}</div><div class="mg-sub">{{ o.user.email|default:o.user.username }}</div></div>
+          <span class="mg-status mg-status-{{ o.status }}">{{ o.get_status_display }}</span>
+        </div>
+        {% empty %}<p class="mg-muted">No orders yet.</p>{% endfor %}
+      </div>
+      <div class="mg-card">
+        <div class="mg-card-head"><h3>New learners</h3><a href="{% url 'manage_users' %}">All</a></div>
+        {% for u in recent_users %}
+        <div class="mg-list-row">
+          <div><div class="mg-strong">{{ u.get_full_name|default:u.username }}</div><div class="mg-sub">{{ u.email }}</div></div>
+          <span class="mg-sub">{{ u.date_joined|date:"M d" }}</span>
+        </div>
+        {% empty %}<p class="mg-muted">No users yet.</p>{% endfor %}
+      </div>
+      <div class="mg-card">
+        <div class="mg-card-head"><h3>Top courses</h3><a href="{% url 'manage_list' 'courses' %}">All</a></div>
+        {% for c in top_courses %}
+        <div class="mg-list-row">
+          <div class="mg-strong">{{ c.title }}</div>
+          <span class="mg-sub">{{ c.n }} enrolled</span>
+        </div>
+        {% empty %}<p class="mg-muted">No courses yet.</p>{% endfor %}
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}

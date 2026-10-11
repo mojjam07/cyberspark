@@ -27,6 +27,15 @@
       Wishlist
     </a>
   </div>
+  {% if user.is_staff %}
+  <div class="sidebar-section">
+    <div class="sidebar-label">Staff</div>
+    <a href="{% url 'manage_home' %}" class="sidebar-item">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Admin Dashboard
+    </a>
+  </div>
+  {% endif %}
   <div class="sidebar-section" style="border-bottom: none;">
     <div class="sidebar-label">Account</div>
     <a href="{% url 'account_settings' %}" class="sidebar-item {% if active_section == 'profile' %}active{% endif %}">
