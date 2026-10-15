@@ -22,7 +22,7 @@
   bottom: -100px;
   width: 400px;
   height: 400px;
-  background: radial-gradient(circle, rgba(184,255,87,0.08) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(var(--accent-rgb),0.08) 0%, transparent 70%);
 }
 
 .auth-visual-content { position: relative; z-index: 1; }
@@ -50,7 +50,7 @@
   position: relative;
   z-index: 1;
   padding: 2rem;
-  background: rgba(255,255,255,0.03);
+  background: rgba(var(--ink-rgb),0.03);
   border: 1px solid var(--border);
   border-radius: 12px;
 }
@@ -79,7 +79,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--accent);
+  color: var(--accent-strong);
   font-size: 12px;
   font-weight: 700;
 }
@@ -175,7 +175,7 @@
   height: 36px;
   border-radius: 8px;
   background: var(--accent-dim);
-  border: 1px solid rgba(184,255,87,0.2);
+  border: 1px solid rgba(var(--accent-rgb),0.2);
   display: flex;
   align-items: center;
   justify-content: center;

@@ -39,7 +39,7 @@
 .contact-info-icon {
   width: 34px; height: 34px; border-radius: 8px;
   background: var(--accent-dim);
-  border: 1px solid rgba(184,255,87,0.2);
+  border: 1px solid rgba(var(--accent-rgb),0.2);
   display: flex; align-items: center; justify-content: center;
   color: var(--accent); flex-shrink: 0;
 }

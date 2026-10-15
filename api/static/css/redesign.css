@@ -1,4 +1,14 @@
+/* =====================================================================
+   THEME TOKENS — the single source of truth for every color on the site.
+   Dark is the default; light overrides it via <html data-theme="light">
+   (set before first paint by the inline script in base.html, toggled by
+   js/theme.js). Never hardcode a color elsewhere — use these variables.
+   The *-rgb tokens exist so tints can be written as
+   rgba(var(--accent-rgb), 0.15) and still follow the theme.
+   ===================================================================== */
 :root {
+  color-scheme: dark;
+
   --bg: #0c0c0d;
   --bg-2: #111114;
   --bg-3: #16161a;
@@ -8,14 +18,86 @@
   --text: #f0ece4;
   --text-2: #888680;
   --text-3: #4a4844;
+
   --accent: #b8ff57;
-  --accent-dim: rgba(184,255,87,0.12);
-  --accent-mid: rgba(184,255,87,0.25);
+  --accent-hover: #c8ff70;
+  --accent-strong: #b8ff57;   /* accent text sitting on an accent-tinted fill */
+  --on-accent: #0c0c0d;
+  --on-accent-muted: rgba(12,12,13,0.6);
   --red: #ff5757;
+  --red-text: #ff9c9c;
+  --on-red: #ffffff;
   --blue: #57b8ff;
+
+  --bg-rgb: 12,12,13;
+  --ink-rgb: 255,255,255;
+  --accent-rgb: 184,255,87;
+  --red-rgb: 255,87,87;
+  --blue-rgb: 87,184,255;
+  --accent-dim: rgba(var(--accent-rgb), 0.12);
+  --accent-mid: rgba(var(--accent-rgb), 0.25);
+
+  --cta-btn-bg: #0c0c0d;
+  --cta-btn-text: #b8ff57;
+  --cta-btn-hover: #1a1a1f;
+
+  --shadow-md: 0 8px 24px rgba(0,0,0,0.35);
+  --shadow-lg: 0 18px 30px rgba(0,0,0,0.35);
+
+  --logo-bg: rgba(var(--accent-rgb), 0.12);
+  --logo-border: rgba(var(--accent-rgb), 0.2);
+  --logo-ring: 0 0 0 1px rgba(var(--accent-rgb), 0.06);
+  --footer-logo-bg: rgba(var(--accent-rgb), 0.08);
+  --logo-filter: none;
+
   --font-display: 'Syne', sans-serif;
   --font-body: 'DM Sans', sans-serif;
   --font-mono: 'DM Mono', monospace;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --bg: #f7f7f4;
+  --bg-2: #f0f0eb;
+  --bg-3: #ebebe5;
+  --bg-card: #ffffff;
+  --border: rgba(12,12,13,0.10);
+  --border-hover: rgba(12,12,13,0.20);
+  --text: #16161a;
+  --text-2: #5a5852;
+  --text-3: #68655f;
+
+  --accent: #31700a;
+  --accent-hover: #275c08;
+  --accent-strong: #1f4d06;
+  --on-accent: #ffffff;
+  --on-accent-muted: rgba(255,255,255,0.85);
+  --red: #b52020;
+  --red-text: #9b1c1c;
+  --on-red: #ffffff;
+  --blue: #0a62bd;
+
+  --bg-rgb: 247,247,244;
+  --ink-rgb: 12,12,13;
+  --accent-rgb: 49,112,10;
+  --red-rgb: 181,32,32;
+  --blue-rgb: 10,98,189;
+
+  --cta-btn-bg: #ffffff;
+  --cta-btn-text: #275c08;
+  --cta-btn-hover: #f0f0eb;
+
+  --shadow-md: 0 8px 24px rgba(20,20,10,0.12);
+  --shadow-lg: 0 18px 30px rgba(20,20,10,0.14);
+
+  /* The lime logo disappears on white, so darken just the glyph to match
+     the accent; the rounded tile stays, tinted in the light accent. */
+  --logo-bg: rgba(var(--accent-rgb), 0.10);
+  --logo-border: rgba(var(--accent-rgb), 0.28);
+  --logo-ring: none;
+  --footer-logo-bg: rgba(var(--accent-rgb), 0.08);
+  --logo-filter: brightness(0.6) saturate(1.5);
 }
 
 * { box-sizing: border-box; }
@@ -70,7 +152,7 @@ main { display: block; }
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: rgba(12, 12, 13, 0.95);
+  background: rgba(var(--bg-rgb), 0.95);
   border-bottom: 1px solid var(--border);
   backdrop-filter: blur(20px);
   padding: clamp(0.5rem, 3vw, 1.5rem);
@@ -91,16 +173,21 @@ main { display: block; }
 }
 .brand span { color: var(--text); }
 .brand span span { color: var(--accent); }
-.brand-logo {
-  width: clamp(26px, 2vw, 34px);
-  height: clamp(26px, 2vw, 34px);
-  object-fit: contain;
-  border-radius: 10px;
-  padding: 4px;
-  background: rgba(184,255,87,0.12);
-  border: 1px solid rgba(184,255,87,0.2);
-  box-shadow: 0 0 0 1px rgba(184,255,87,0.06);
+.brand-mark {
+  display: inline-flex;
   flex-shrink: 0;
+  border-radius: 10px;
+  background: var(--logo-bg);
+  border: 1px solid var(--logo-border);
+  box-shadow: var(--logo-ring);
+}
+.brand-logo {
+  display: block;
+  width: calc(clamp(26px, 2vw, 34px) - 2px);
+  height: calc(clamp(26px, 2vw, 34px) - 2px);
+  object-fit: contain;
+  padding: 4px;
+  filter: var(--logo-filter);   /* darkens only the glyph in light mode, not the tile */
 }
 .nav-menu {
   display: flex;
@@ -122,39 +209,81 @@ main { display: block; }
 }
 .nav-link:hover {
   color: var(--text);
-  background: rgba(255,255,255,0.05);
+  background: rgba(var(--ink-rgb),0.05);
 }
 .nav-link.active { color: var(--accent); }
 .nav-cta {
   background: var(--accent);
-  color: #0c0c0d;
+  color: var(--on-accent);
   font-weight: 600;
   margin-left: 8px;
 }
 .nav-cta:hover {
-  background: #c8ff70;
-  color: #0c0c0d;
+  background: var(--accent-hover);
+  color: var(--on-accent);
 }
 
 .hamburger {
   display: none;
   width: 42px;
   height: 42px;
-  border: 1px solid rgba(184,255,87,0.25);
+  border: 1px solid rgba(var(--accent-rgb),0.25);
   border-radius: 10px;
-  background: rgba(184,255,87,0.10);
+  background: rgba(var(--accent-rgb),0.10);
   color: var(--accent);
   cursor: pointer;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
 }
-.hamburger:hover { background: rgba(184,255,87,0.16); }
+.hamburger:hover { background: rgba(var(--accent-rgb),0.16); }
 .hamburger.open {
   background: var(--accent);
-  color: #0c0c0d;
+  color: var(--on-accent);
   border-color: var(--accent);
-  box-shadow: 0 0 0 4px rgba(184,255,87,0.15);
+  box-shadow: 0 0 0 4px rgba(var(--accent-rgb),0.15);
+}
+
+/* Theme toggle (sun/moon). Sits at the far right on desktop and next to
+   the hamburger on mobile, so it is always reachable. */
+.site-nav .brand { order: 0; }
+.site-nav .nav-menu { order: 2; }
+.theme-toggle {
+  order: 3;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  margin-left: 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-hover);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+.theme-toggle:hover { color: var(--text); background: rgba(var(--ink-rgb), 0.06); }
+.theme-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.theme-toggle .icon-sun,
+.theme-toggle .icon-moon { display: none; }
+/* In dark mode show the sun (click = go light); in light mode show the moon. */
+:root:not([data-theme="light"]) .theme-toggle .icon-sun { display: block; }
+:root[data-theme="light"] .theme-toggle .icon-moon { display: block; }
+.site-nav .hamburger { order: 4; }
+
+/* Smooth colour fade while switching (removed again after ~350ms) */
+html.theme-switching,
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease,
+              box-shadow 0.3s ease, fill 0.3s ease, stroke 0.3s ease !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  html.theme-switching, html.theme-switching *,
+  html.theme-switching *::before, html.theme-switching *::after { transition: none !important; }
 }
 
 /* Account dropdown (desktop): collapses Dashboard/Orders/Wishlist/Settings/
@@ -180,13 +309,13 @@ main { display: block; }
 .nav-account-trigger:hover,
 .nav-account.open .nav-account-trigger {
   color: var(--text);
-  background: rgba(255,255,255,0.05);
+  background: rgba(var(--ink-rgb),0.05);
   border-color: var(--border);
 }
 .nav-account-avatar {
   width: 24px; height: 24px; border-radius: 50%;
   background: var(--accent-dim);
-  border: 1px solid rgba(184,255,87,0.25);
+  border: 1px solid rgba(var(--accent-rgb),0.25);
   color: var(--accent);
   display: flex; align-items: center; justify-content: center;
   font-family: var(--font-display);
@@ -209,7 +338,7 @@ main { display: block; }
   padding: 6px;
   flex-direction: column;
   gap: 2px;
-  box-shadow: 0 18px 30px rgba(0,0,0,0.35);
+  box-shadow: var(--shadow-lg);
   z-index: 110;
 }
 .nav-account.open .nav-account-panel { display: flex; }
@@ -219,7 +348,7 @@ main { display: block; }
   font-size: 13px;
 }
 .nav-account-panel .nav-signout { color: var(--red); }
-.nav-account-panel .nav-signout:hover { background: rgba(255,87,87,0.1); }
+.nav-account-panel .nav-signout:hover { background: rgba(var(--red-rgb),0.1); }
 
 /* Buttons */
 .btn-primary,
@@ -235,13 +364,13 @@ main { display: block; }
 }
 .btn-primary {
   background: var(--accent);
-  color: #0c0c0d;
+  color: var(--on-accent);
   border: none;
   border-radius: 8px;
   padding: 13px 28px;
   font-weight: 600;
 }
-.btn-primary:hover { background: #c8ff70; transform: translateY(-1px); }
+.btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
 .btn-ghost {
   background: transparent;
   color: var(--text-2);
@@ -249,21 +378,21 @@ main { display: block; }
   border-radius: 8px;
   padding: 12px 24px;
 }
-.btn-ghost:hover { color: var(--text); border-color: rgba(255,255,255,0.25); }
+.btn-ghost:hover { color: var(--text); border-color: rgba(var(--ink-rgb),0.25); }
 .btn-dark {
-  background: #0c0c0d;
-  color: var(--accent);
+  background: var(--cta-btn-bg);
+  color: var(--cta-btn-text);
   border: none;
   border-radius: 8px;
   padding: 14px 32px;
   font-family: var(--font-display);
   font-weight: 700;
 }
-.btn-dark:hover { background: #1a1a1f; }
+.btn-dark:hover { background: var(--cta-btn-hover); }
 .btn-submit {
   width: 100%;
   background: var(--accent);
-  color: #0c0c0d;
+  color: var(--on-accent);
   border: none;
   border-radius: 8px;
   padding: 13px;
@@ -272,7 +401,7 @@ main { display: block; }
   margin-top: 1.5rem;
   min-height: 44px;
 }
-.btn-submit:hover { background: #c8ff70; transform: translateY(-1px); }
+.btn-submit:hover { background: var(--accent-hover); transform: translateY(-1px); }
 .btn-link {
   color: var(--accent);
   font-size: 13px;
@@ -297,7 +426,7 @@ main { display: block; }
   right: -200px;
   width: 600px;
   height: 600px;
-  background: radial-gradient(circle, rgba(184,255,87,0.06) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(var(--accent-rgb),0.06) 0%, transparent 70%);
   pointer-events: none;
 }
 .hero-left {
@@ -424,7 +553,7 @@ main { display: block; }
   letter-spacing: 0.1em;
   padding: 4px 10px;
   border-radius: 4px;
-  border: 1px solid rgba(184,255,87,0.2);
+  border: 1px solid rgba(var(--accent-rgb),0.2);
 }
 
 /* Course cards */
@@ -488,7 +617,7 @@ main { display: block; }
   font-size: 36px;
   font-weight: 800;
   color: var(--text-3);
-  background: linear-gradient(135deg, rgba(184,255,87,0.06) 0%, transparent 65%);
+  background: linear-gradient(135deg, rgba(var(--accent-rgb),0.06) 0%, transparent 65%);
 }
 .course-cat {
   font-family: var(--font-mono);
@@ -562,7 +691,7 @@ main { display: block; }
 .filter-chip:hover { border-color: var(--border-hover); color: var(--text); }
 .filter-chip.active {
   background: var(--accent);
-  color: #0c0c0d;
+  color: var(--on-accent);
   border-color: var(--accent);
   font-weight: 600;
 }
@@ -632,7 +761,7 @@ main { display: block; }
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(184,255,87,0.04) 0%, transparent 60%);
+  background: linear-gradient(135deg, rgba(var(--accent-rgb),0.04) 0%, transparent 60%);
 }
 
 /* CTA banner */
@@ -652,12 +781,12 @@ main { display: block; }
   font-size: clamp(1.5rem, 6vw, 2.5rem);
   font-weight: 800;
   letter-spacing: -0.04em;
-  color: #0c0c0d;
+  color: var(--on-accent);
 }
 .cta-banner p {
   margin-top: 6px;
   font-size: 15px;
-  color: rgba(12,12,13,0.6);
+  color: var(--on-accent-muted);
   font-weight: 300;
 }
 
@@ -715,15 +844,20 @@ main { display: block; }
   align-items: center;
   gap: 0.75rem;
 }
-.footer-brand-logo {
-  width: clamp(28px, 2.2vw, 42px);
-  height: clamp(28px, 2.2vw, 42px);
-  object-fit: contain;
-  border-radius: 12px;
-  padding: 6px;
-  background: rgba(184,255,87,0.08);
-  border: 1px solid rgba(184,255,87,0.2);
+.footer-brand-mark {
+  display: inline-flex;
   flex-shrink: 0;
+  border-radius: 12px;
+  background: var(--footer-logo-bg);
+  border: 1px solid var(--logo-border);
+}
+.footer-brand-logo {
+  display: block;
+  width: calc(clamp(28px, 2.2vw, 42px) - 2px);
+  height: calc(clamp(28px, 2.2vw, 42px) - 2px);
+  object-fit: contain;
+  padding: 6px;
+  filter: var(--logo-filter);
 }
 .footer-brand-copy {
   display: flex;
@@ -798,6 +932,7 @@ main { display: block; }
 /* Responsive */
 @media (max-width: 768px) {
   .hamburger { display: inline-flex; }
+  .theme-toggle { width: 42px; height: 42px; }
   .nav-menu {
     display: none;
     position: absolute;
@@ -807,10 +942,10 @@ main { display: block; }
     flex-direction: column;
     align-items: stretch;
     gap: 0.4rem;
-    background: rgba(12,12,13,0.98);
+    background: rgba(var(--bg-rgb), 0.98);
     border-bottom: 1px solid var(--border);
     padding: 0.75rem 1rem 1rem;
-    box-shadow: 0 18px 30px rgba(0,0,0,0.18);
+    box-shadow: var(--shadow-lg);
   }
   .site-nav.mobile-open .nav-menu { display: flex; }
   .nav-link,
@@ -829,7 +964,7 @@ main { display: block; }
   .nav-account-trigger {
     width: 100%;
     padding: 0.8rem 0.85rem;
-    background: rgba(255,255,255,0.03);
+    background: rgba(var(--ink-rgb),0.03);
     border-color: var(--border);
     cursor: default;
     pointer-events: none;
@@ -871,7 +1006,7 @@ main { display: block; }
 
 @media (max-width: 480px) {
   .brand { gap: 0.5rem; font-size: 0.95rem; }
-  .brand-logo { width: 26px; height: 26px; }
+  .brand-logo { width: 24px; height: 24px; }
   .hero-left,
   .auth-form-area,
   .auth-visual { padding: clamp(1.25rem, 5vw, 2rem); }
@@ -914,7 +1049,7 @@ main { display: block; }
   font-size: 13.5px;
   font-weight: 500;
   color: var(--text);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  box-shadow: var(--shadow-md);
   animation: toast-in 0.25s ease;
 }
 .toast.toast-hide { animation: toast-out 0.2s ease forwards; }

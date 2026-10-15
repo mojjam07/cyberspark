@@ -4,8 +4,14 @@
 <meta charset="UTF-8">
 <title>Something went wrong — CyberSpark</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+(function(){var t;try{t=localStorage.getItem('cs-theme')}catch(e){}
+if(t!=='light'&&t!=='dark'){t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'}
+document.documentElement.setAttribute('data-theme',t)})();
+</script>
 <style>
-  :root { --bg:#0c0c0d; --text:#f0ece4; --text-2:#888680; --accent:#b8ff57; --border:rgba(255,255,255,0.07); }
+  :root { color-scheme: dark; --bg:#0c0c0d; --text:#f0ece4; --text-2:#888680; --accent:#b8ff57; --on-accent:#0c0c0d; --border:rgba(255,255,255,0.07); }
+  :root[data-theme="light"] { color-scheme: light; --bg:#f7f7f4; --text:#16161a; --text-2:#5a5852; --accent:#31700a; --on-accent:#ffffff; --border:rgba(12,12,13,0.10); }
   * { box-sizing: border-box; }
   body {
     background: var(--bg); color: var(--text);
@@ -20,7 +26,7 @@
   h1 { font-size: clamp(1.1rem, 4vw, 1.4rem); margin: 0.75rem 0 0.5rem; font-weight: 700; }
   p { color: var(--text-2); font-size: 14px; margin-bottom: 1.5rem; }
   a {
-    display: inline-block; color: #0c0c0d; background: var(--accent);
+    display: inline-block; color: var(--on-accent); background: var(--accent);
     text-decoration: none; font-weight: 600; font-size: 14px;
     padding: 10px 22px; border-radius: 8px;
   }

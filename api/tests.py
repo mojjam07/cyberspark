@@ -869,3 +869,281 @@ class ManageDashboardTests(TestCase):
         text = self.client.get(reverse('manage_import_template', args=['courses'])).content.decode()
         resp = self.client.post(reverse('manage_import'), {'kind': 'courses', 'file': self._csv(text)})
         self.assertContains(resp, '1 created')
+
+
+# =====================================================================
+# Dark / light theme
+# =====================================================================
+import json
+import re
+import subprocess
+from pathlib import Path
+
+from django.conf import settings as dj_settings
+
+CSS_DIR = Path(dj_settings.BASE_DIR) / 'api' / 'static' / 'css'
+JS_DIR = Path(dj_settings.BASE_DIR) / 'api' / 'static' / 'js'
+TEMPLATE_DIR = Path(dj_settings.BASE_DIR) / 'api' / 'templates'
+
+
+def _strip_blocks(css, opener):
+    """Remove every {...} block whose header matches `opener` (handles nesting)."""
+    pattern, out, i = re.compile(opener), [], 0
+    while True:
+        m = pattern.search(css, i)
+        if not m:
+            out.append(css[i:])
+            return ''.join(out)
+        out.append(css[i:m.start()])
+        depth, j = 0, m.end() - 1
+        while j < len(css):
+            if css[j] == '{':
+                depth += 1
+            elif css[j] == '}':
+                depth -= 1
+                if depth == 0:
+                    j += 1
+                    break
+            j += 1
+        i = j
+
+
+def _theme_tokens():
+    css = (CSS_DIR / 'redesign.css').read_text()
+    blocks = {}
+    for m in re.finditer(r'(:root(?:\[data-theme="light"\])?)\s*\{(.*?)\n\}', css, re.S):
+        name = 'light' if 'light' in m.group(1) else 'dark'
+        blocks[name] = {k: v.strip() for k, v in re.findall(r'(--[\w-]+)\s*:\s*([^;]+);', m.group(2))}
+    return blocks
+
+
+def _rgb(value):
+    value = value.strip()
+    if value.startswith('#'):
+        h = value.lstrip('#')
+        return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
+    return tuple(int(x) for x in value.split(','))
+
+
+def _lum(rgb):
+    def lin(c):
+        c /= 255
+        return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
+    r, g, b = (lin(c) for c in rgb)
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def _contrast(a, b):
+    la, lb = sorted((_lum(a), _lum(b)), reverse=True)
+    return (la + 0.05) / (lb + 0.05)
+
+
+def _tint(fg, alpha, bg):
+    return tuple(round(fg[i] * alpha + bg[i] * (1 - alpha)) for i in range(3))
+
+
+class ThemeTokenTests(TestCase):
+    def setUp(self):
+        self.tokens = _theme_tokens()
+
+    def test_both_theme_blocks_exist(self):
+        self.assertEqual(set(self.tokens), {'dark', 'light'})
+
+    def test_every_dark_color_token_is_overridden_in_light(self):
+        """A token added to dark but forgotten in light would leave a dark colour on a light page."""
+        shared_on_purpose = {'--on-red', '--accent-dim', '--accent-mid'}  # same value / derived from -rgb tokens
+        dark = {k for k in self.tokens['dark'] if not k.startswith('--font-')}
+        missing = dark - set(self.tokens['light']) - shared_on_purpose
+        self.assertEqual(missing, set(), f"Define these in the light theme too: {sorted(missing)}")
+
+    def test_light_theme_meets_wcag_aa_contrast(self):
+        t = self.tokens['light']
+        c = {k: _rgb(v) for k, v in t.items() if v.startswith('#')}
+        accent_rgb, red_rgb, blue_rgb = _rgb(t['--accent-rgb']), _rgb(t['--red-rgb']), _rgb(t['--blue-rgb'])
+        checks = {
+            'text on bg': (c['--text'], c['--bg']),
+            'text on card': (c['--text'], c['--bg-card']),
+            'text-2 on bg': (c['--text-2'], c['--bg']),
+            'text-2 on card': (c['--text-2'], c['--bg-card']),
+            'text-2 on bg-3': (c['--text-2'], c['--bg-3']),
+            'text-3 on bg': (c['--text-3'], c['--bg']),
+            'text-3 on card': (c['--text-3'], c['--bg-card']),
+            'text-3 on bg-3': (c['--text-3'], c['--bg-3']),
+            'accent on bg': (c['--accent'], c['--bg']),
+            'accent on card': (c['--accent'], c['--bg-card']),
+            'accent on bg-3': (c['--accent'], c['--bg-3']),
+            'button text on accent': (c['--on-accent'], c['--accent']),
+            'button text on accent hover': (c['--on-accent'], c['--accent-hover']),
+            'red on card': (c['--red'], c['--bg-card']),
+            'blue on card': (c['--blue'], c['--bg-card']),
+            'CTA button text on CTA button': (c['--cta-btn-text'], c['--cta-btn-bg']),
+            'CTA button on accent band': (c['--cta-btn-bg'], c['--accent']),
+            'badge: accent on its tint': (c['--accent'], _tint(accent_rgb, .15, c['--bg-card'])),
+            'badge: red on its tint': (c['--red'], _tint(red_rgb, .15, c['--bg-card'])),
+            'badge: blue on its tint': (c['--blue'], _tint(blue_rgb, .15, c['--bg-card'])),
+            'alert: red-text on red tint': (c['--red-text'], _tint(red_rgb, .08, c['--bg-card'])),
+        }
+        failures = {k: round(_contrast(*v), 2) for k, v in checks.items() if _contrast(*v) < 4.5}
+        self.assertEqual(failures, {}, "Light theme pairs below WCAG AA (4.5:1)")
+
+    def test_dark_theme_primary_pairs_meet_aa(self):
+        # Note: dark --text-3 (hint text) is a legacy low-contrast value and is intentionally not asserted.
+        t = self.tokens['dark']
+        c = {k: _rgb(v) for k, v in t.items() if v.startswith('#')}
+        for label, (a, b) in {
+            'text on bg': (c['--text'], c['--bg']), 'text-2 on card': (c['--text-2'], c['--bg-card']),
+            'accent on card': (c['--accent'], c['--bg-card']), 'button text on accent': (c['--on-accent'], c['--accent']),
+            'red on card': (c['--red'], c['--bg-card']),
+        }.items():
+            self.assertGreaterEqual(_contrast(a, b), 4.5, label)
+
+
+class ThemeNoHardcodedColorTests(TestCase):
+    COLOR = re.compile(r'#[0-9a-fA-F]{3,8}\b|rgba?\(\s*\d|(?<![\w-])(?:white|black)(?![\w-])')
+
+    def test_stylesheets_only_use_theme_tokens(self):
+        offenders = {}
+        for path in sorted(CSS_DIR.glob('*.css')):
+            css = re.sub(r'/\*.*?\*/', '', path.read_text(), flags=re.S)
+            css = _strip_blocks(css, r':root(?:\[data-theme="light"\])?\s*\{')   # the token definitions
+            css = _strip_blocks(css, r'@media\s+print\s*\{')                      # paper should stay white
+            found = self.COLOR.findall(css)
+            if found:
+                offenders[path.name] = found[:5]
+        self.assertEqual(offenders, {}, "Hardcoded colours break light mode — use var(--token) from redesign.css")
+
+    def test_templates_have_no_inline_hardcoded_colors(self):
+        offenders = {}
+        for path in sorted(TEMPLATE_DIR.glob('*.html')):
+            if path.name == '500.html':      # standalone page, has its own tiny theme
+                continue
+            html = path.read_text()
+            hits = re.findall(r'style="[^"]*(?:#[0-9a-fA-F]{3,8}\b|rgba?\(\s*\d)[^"]*"', html)
+            for block in re.findall(r'<style>(.*?)</style>', html, re.S):
+                hits += self.COLOR.findall(block)
+            if hits:
+                offenders[path.name] = hits[:3]
+        self.assertEqual(offenders, {})
+
+
+class ThemeToggleRenderingTests(TestCase):
+    def setUp(self):
+        User.objects.create_user(username='t@example.com', email='t@example.com', password='pass12345')
+        User.objects.create_user(username='s@example.com', email='s@example.com', password='pass12345', is_staff=True)
+
+    def _assert_themed(self, resp, url):
+        html = resp.content.decode()
+        self.assertIn('id="themeToggle"', html, url)
+        self.assertIn('class="icon-sun"', html, url)
+        self.assertIn('class="icon-moon"', html, url)
+        self.assertIn('name="theme-color"', html, url)
+        self.assertIn('js/theme.js', html, url)
+        # init script must run BEFORE the stylesheet to avoid a flash of the wrong theme
+        self.assertLess(html.index("localStorage.getItem('cs-theme')"), html.index('css/redesign.css'), url)
+
+    def test_public_pages_have_toggle(self):
+        for url in ['/', '/courses/', '/about/', '/contact/', '/faq/', '/terms/', '/privacy/', '/login/', '/signup/',
+                    '/password-reset/', '/definitely-missing-page/']:
+            self._assert_themed(self.client.get(url), url)
+
+    def test_logged_in_and_staff_pages_have_toggle(self):
+        self.client.login(username='s@example.com', password='pass12345')
+        for url in ['/dashboard/', '/dashboard/courses/', '/dashboard/progress/', '/dashboard/certificates/', '/orders/',
+                    '/wishlist/', '/account/', '/manage/', '/manage/orders/', '/manage/import/',
+                    '/manage/courses/', '/manage/courses/new/']:
+            self._assert_themed(self.client.get(url), url)
+
+    def test_theme_is_not_set_server_side(self):
+        # The page must be cacheable/identical for everyone; theme is applied client-side.
+        self.assertNotIn('data-theme=', self.client.get('/').content.decode().split('</head>')[0].split('<script>')[0])
+
+    def test_standalone_500_page_supports_both_themes(self):
+        html = (TEMPLATE_DIR / '500.html').read_text()
+        self.assertIn('data-theme="light"', html)
+        self.assertIn("localStorage.getItem('cs-theme')", html)
+
+
+import shutil
+import unittest
+
+
+@unittest.skipUnless(shutil.which('node'), 'node is not installed')
+class ThemeJavaScriptTests(TestCase):
+    HARNESS = r'''
+const fs = require('fs');
+const code = fs.readFileSync(process.argv[process.argv.length - 1], 'utf8');
+function setup(o) {
+  o = o || {};
+  const store = o.saved ? { 'cs-theme': o.saved } : {};
+  const timers = [];
+  const attrs = { 'data-theme': o.initial || 'dark' };
+  const classes = new Set();
+  const root = { getAttribute: k => attrs[k], setAttribute: (k, v) => { attrs[k] = v; },
+                 classList: { add: c => classes.add(c), remove: c => classes.delete(c) } };
+  const meta = { v: '', setAttribute(k, v) { this.v = v; } };
+  const btn = { a: {}, l: {}, setAttribute(k, v) { this.a[k] = v; }, addEventListener(t, f) { this.l[t] = f; } };
+  const mq = { matches: !!o.prefersLight, fn: null, addEventListener(t, f) { this.fn = f; } };
+  const winL = {};
+  const localStorage = o.throwing
+    ? { getItem() { throw new Error('denied'); }, setItem() { throw new Error('denied'); } }
+    : { getItem: k => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = v; } };
+  const window = {
+    matchMedia: q => q.indexOf('reduced-motion') > -1 ? { matches: !!o.reduced } : mq,
+    setTimeout: (f) => timers.push(f), addEventListener: (t, f) => { winL[t] = f; },
+  };
+  const document = { documentElement: root, querySelector: () => meta, getElementById: id => id === 'themeToggle' ? btn : null };
+  new Function('window', 'document', 'localStorage', code)(window, document, localStorage);
+  return { attrs, classes, meta, btn, mq, winL, store, timers };
+}
+const r = {};
+let e = setup({ initial: 'dark' });
+r.initial_label_says_light = e.btn.a['aria-label'] === 'Switch to light mode';
+e.btn.l.click();
+r.click_goes_light = e.attrs['data-theme'] === 'light';
+r.saved_light = e.store['cs-theme'] === 'light';
+r.meta_light = e.meta.v === '#f7f7f4';
+r.label_says_dark = e.btn.a['aria-label'] === 'Switch to dark mode' && e.btn.a.title === 'Switch to dark mode';
+r.fade_class_added = e.classes.has('theme-switching');
+e.timers.forEach(f => f());
+r.fade_class_removed = !e.classes.has('theme-switching');
+e.btn.l.click();
+r.click_back_dark = e.attrs['data-theme'] === 'dark' && e.store['cs-theme'] === 'dark' && e.meta.v === '#0c0c0d';
+
+e = setup({ initial: 'dark', prefersLight: false });
+e.mq.matches = true; e.mq.fn();
+r.follows_os_when_unsaved = e.attrs['data-theme'] === 'light';
+
+e = setup({ initial: 'dark', saved: 'dark' });
+e.mq.matches = true; e.mq.fn();
+r.ignores_os_when_user_chose = e.attrs['data-theme'] === 'dark';
+
+e = setup({ initial: 'dark' });
+e.winL.storage({ key: 'cs-theme', newValue: 'light' });
+r.syncs_other_tab = e.attrs['data-theme'] === 'light';
+e.winL.storage({ key: 'cs-theme', newValue: 'banana' });
+r.rejects_garbage = e.attrs['data-theme'] === 'light';
+e.winL.storage({ key: 'other', newValue: 'dark' });
+r.ignores_other_keys = e.attrs['data-theme'] === 'light';
+
+e = setup({ initial: 'dark', throwing: true });
+let threw = false;
+try { e.btn.l.click(); } catch (x) { threw = true; }
+r.survives_blocked_storage = !threw && e.attrs['data-theme'] === 'light';
+
+e = setup({ initial: 'dark', reduced: true });
+e.btn.l.click();
+r.no_fade_when_reduced_motion = !e.classes.has('theme-switching');
+
+e = setup({ initial: 'light' });
+r.syncs_label_for_light_start = e.btn.a['aria-label'] === 'Switch to dark mode';
+console.log(JSON.stringify(r));
+'''
+
+    def test_theme_js_behaviour(self):
+        out = subprocess.run(['node', '-e', self.HARNESS, str(JS_DIR / 'theme.js')],
+                             capture_output=True, text=True, timeout=30)
+        self.assertEqual(out.returncode, 0, out.stderr)
+        results = json.loads(out.stdout.strip().splitlines()[-1])
+        failed = [k for k, v in results.items() if v is not True]
+        self.assertEqual(failed, [], f"theme.js behaviours failing: {failed}")
+        self.assertGreaterEqual(len(results), 14)

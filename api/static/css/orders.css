@@ -38,9 +38,9 @@
   letter-spacing: 0.05em;
   white-space: nowrap;
 }
-.status-paid { background: rgba(184,255,87,0.15); color: var(--accent); }
-.status-pending, .status-awaiting_review { background: rgba(87,184,255,0.15); color: var(--blue); }
-.status-failed, .status-cancelled { background: rgba(255,87,87,0.15); color: var(--red); }
+.status-paid { background: rgba(var(--accent-rgb),0.15); color: var(--accent); }
+.status-pending, .status-awaiting_review { background: rgba(var(--blue-rgb),0.15); color: var(--blue); }
+.status-failed, .status-cancelled { background: rgba(var(--red-rgb),0.15); color: var(--red); }
 
 @media (max-width: 480px) {
   .order-row { flex-direction: column; align-items: flex-start; }

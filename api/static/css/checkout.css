@@ -50,7 +50,7 @@
 .pay-card-icon {
   width: 32px; height: 32px; border-radius: 8px;
   background: var(--accent-dim);
-  border: 1px solid rgba(184,255,87,0.2);
+  border: 1px solid rgba(var(--accent-rgb),0.2);
   display: flex; align-items: center; justify-content: center;
   color: var(--accent); flex-shrink: 0;
 }
@@ -113,7 +113,7 @@
   font-family: var(--font-mono);
   font-size: 11px;
   color: var(--accent);
-  background: rgba(184,255,87,0.1);
+  background: rgba(var(--accent-rgb),0.1);
   padding: 2px 8px;
   border-radius: 999px;
 }

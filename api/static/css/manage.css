@@ -13,10 +13,10 @@
 .mg-head-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
 .mg-btn { width: auto !important; display: inline-block; padding: 10px 18px; font-size: 13px; text-decoration: none; text-align: center; }
-.mg-btn-danger { background: var(--red) !important; border-color: var(--red) !important; color: #fff !important; }
+.mg-btn-danger { background: var(--red) !important; border-color: var(--red) !important; color: var(--on-red) !important; }
 
 .mg-badge {
-  margin-left: auto; background: var(--accent); color: #0c0c0d;
+  margin-left: auto; background: var(--accent); color: var(--on-accent);
   font-size: 10.5px; font-weight: 800; border-radius: 999px; padding: 1px 7px;
 }
 
@@ -75,22 +75,32 @@
   font-size: 12.5px; color: var(--text-2); text-decoration: none;
 }
 .mg-tab span { color: var(--text-3); margin-left: 4px; font-family: var(--font-mono); font-size: 11px; }
-.mg-tab.active { background: var(--accent-dim); border-color: rgba(184,255,87,0.4); color: var(--accent); }
+.mg-tab.active { background: var(--accent-dim); border-color: rgba(var(--accent-rgb),0.4); color: var(--accent); }
 
 /* Tables (scroll horizontally on small screens instead of breaking layout) */
 .mg-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--bg-card); }
 .mg-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 560px; }
 .mg-table th {
-  text-align: left; padding: 11px 14px; font-family: var(--font-mono); font-size: 10.5px;
+  text-align: left; padding: 11px 12px; font-family: var(--font-mono); font-size: 10.5px;
   letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-3);
   border-bottom: 1px solid var(--border); white-space: nowrap;
 }
-.mg-table td { padding: 11px 14px; border-bottom: 1px solid var(--border); color: var(--text-2); vertical-align: top; }
+.mg-table td { padding: 11px 12px; border-bottom: 1px solid var(--border); color: var(--text-2); vertical-align: top; }
 .mg-table tr:last-child td { border-bottom: none; }
-.mg-table tbody tr:hover td { background: rgba(255,255,255,0.02); }
+.mg-table tbody tr:hover td { background: rgba(var(--ink-rgb),0.02); }
 .mg-table td:first-child { color: var(--text); }
 .mg-actions-col { text-align: right; }
 .mg-actions { text-align: right; white-space: nowrap; }
+/* Keep the row actions (Approve / Edit / Delete) pinned to the right edge so
+   they are always reachable, even when the table scrolls sideways. */
+.mg-table th.mg-actions-col,
+.mg-table td.mg-actions {
+  position: sticky;
+  right: 0;
+  background: var(--bg-card);
+  box-shadow: -10px 0 10px -10px rgba(var(--ink-rgb), 0.22);
+}
+.mg-table tbody tr:hover td.mg-actions { background: var(--bg-card); }
 .mg-actions a, .mg-link-btn {
   background: none; border: none; padding: 0; margin-left: 12px; font: inherit; font-size: 12.5px;
   color: var(--accent); cursor: pointer; text-decoration: none;
@@ -103,9 +113,9 @@
   display: inline-block; font-family: var(--font-mono); font-size: 10.5px; font-weight: 700;
   padding: 3px 9px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap;
 }
-.mg-status-paid { background: rgba(184,255,87,0.15); color: var(--accent); }
-.mg-status-pending, .mg-status-awaiting_review { background: rgba(87,184,255,0.15); color: var(--blue); }
-.mg-status-failed, .mg-status-cancelled { background: rgba(255,87,87,0.15); color: var(--red); }
+.mg-status-paid { background: rgba(var(--accent-rgb),0.15); color: var(--accent); }
+.mg-status-pending, .mg-status-awaiting_review { background: rgba(var(--blue-rgb),0.15); color: var(--blue); }
+.mg-status-failed, .mg-status-cancelled { background: rgba(var(--red-rgb),0.15); color: var(--red); }
 
 .mg-pagination { display: flex; justify-content: center; align-items: center; gap: 1.25rem; margin-top: 1rem; font-size: 13px; color: var(--text-2); }
 .mg-pagination a { color: var(--accent); text-decoration: none; }
@@ -125,8 +135,8 @@
 .mg-inline-form .form-group { margin-bottom: 0; }
 
 .mg-alert { border-radius: 10px; padding: 0.85rem 1rem; font-size: 13px; line-height: 1.6; margin: 0.75rem 0; }
-.mg-alert-error { background: rgba(255,87,87,0.08); border: 1px solid rgba(255,87,87,0.25); color: #ff9c9c; }
-.mg-alert-ok { background: rgba(184,255,87,0.08); border: 1px solid rgba(184,255,87,0.25); color: var(--accent); }
+.mg-alert-error { background: rgba(var(--red-rgb),0.08); border: 1px solid rgba(var(--red-rgb),0.25); color: var(--red-text); }
+.mg-alert-ok { background: rgba(var(--accent-rgb),0.08); border: 1px solid rgba(var(--accent-rgb),0.25); color: var(--accent); }
 .mg-alert ul { margin: 0.5rem 0 0 1.1rem; }
 
 /* Import */
@@ -135,7 +145,7 @@
   font-family: var(--font-mono); font-size: 11px; padding: 2px 7px; border-radius: 6px;
   background: var(--bg-3); border: 1px solid var(--border); color: var(--text-2);
 }
-code.req { border-color: rgba(184,255,87,0.4) !important; color: var(--accent) !important; }
+code.req { border-color: rgba(var(--accent-rgb),0.4) !important; color: var(--accent) !important; }
 .mg-upload { display: flex; flex-direction: column; gap: 10px; margin-top: 0.5rem; }
 .mg-card a { color: var(--accent); }
 

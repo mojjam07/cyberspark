@@ -40,7 +40,7 @@
   padding: 4px 10px;
   border-radius: 999px;
   background: var(--accent-dim);
-  border: 1px solid rgba(184,255,87,0.25);
+  border: 1px solid rgba(var(--accent-rgb),0.25);
   color: var(--accent);
   font-family: var(--font-mono);
   font-size: 11px;
@@ -208,4 +208,4 @@
   transition: border-color 0.15s ease, color 0.15s ease;
 }
 .cd-wishlist-btn:hover { border-color: var(--border-hover); color: var(--text); }
-.cd-wishlist-btn.active { color: var(--accent); border-color: rgba(184,255,87,0.3); }
+.cd-wishlist-btn.active { color: var(--accent); border-color: rgba(var(--accent-rgb),0.3); }

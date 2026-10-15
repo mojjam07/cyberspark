@@ -60,6 +60,24 @@ Enrolled users see them at `/courses/<slug>/learn/` and can tick lessons
 off; `Enrollment.progress` recomputes automatically and marks the course
 complete at 100%.
 
+## Dark / light theme
+A sun/moon button in the navbar switches themes site-wide (including the admin
+dashboard and error pages). The choice is saved in the browser; until a visitor
+picks one, the site follows their device's light/dark setting.
+
+- **All colours live in one place:** the `:root` (dark) and
+  `:root[data-theme="light"]` token blocks at the top of
+  `api/static/css/redesign.css`. Stylesheets and templates must only use
+  `var(--token)` — never hardcoded hex/rgba values. To tint with a theme colour
+  use `rgba(var(--accent-rgb), 0.15)`.
+- **No flash on load:** a tiny inline script in `base.html` sets the theme
+  before the stylesheet paints; `static/js/theme.js` handles the toggle,
+  saving, OS-setting changes and syncing between tabs.
+- **Guard-rails (in `api/tests.py`):** tests fail if a hardcoded colour is added,
+  if a token is added to dark but not light, or if a light-theme text/background
+  pair drops below WCAG AA (4.5:1). `theme.js` is also unit-tested with Node
+  (skipped automatically if Node isn't installed).
+
 ## Staff admin dashboard
 `/manage/` (staff only) is a branded back-office for populating and running
 the platform: overview stats, CRUD for courses/lessons/categories/instructors/

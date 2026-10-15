@@ -17,7 +17,7 @@
   width: 84px; height: 84px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   background: var(--accent-dim);
-  border: 1px solid rgba(184,255,87,0.2);
+  border: 1px solid rgba(var(--accent-rgb),0.2);
   color: var(--accent);
   font-family: var(--font-display);
   font-size: 32px;
